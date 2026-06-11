@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">আমের রোগ নির্ণয়</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">ছবি তুলুন</string>
+    <string name="onboarding_desc_1">আপনার আমের পাতার ছবি তুলুন</string>
+    <string name="onboarding_title_2">AI বিশ্লেষণ</string>
+    <string name="onboarding_desc_2">আমাদের AI রোগ শনাক্ত করবে</string>
+    <string name="onboarding_title_3">চিকিৎসা জানুন</string>
+    <string name="onboarding_desc_3">সঠিক চিকিৎসা জানুন</string>
+    <string name="btn_next">পরবর্তী</string>
+    <string name="btn_start">শুরু করুন</string>
+    <string name="btn_skip">এড়িয়ে যান</string>
+
+    <!-- Home -->
+    <string name="home_title">আমের রোগ নির্ণয়</string>
+    <string name="home_subtitle">পাতার ছবি তুলুন বা বেছে নিন</string>
+    <string name="btn_camera">ছবি তুলুন</string>
+    <string name="btn_gallery">গ্যালারি থেকে বেছে নিন</string>
+
+    <!-- Result -->
+    <string name="result_title">রোগ নির্ণয়ের ফলাফল</string>
+    <string name="result_confidence">নিশ্চিততা</string>
+    <string name="result_analyzing">বিশ্লেষণ করা হচ্ছে…</string>
+    <string name="btn_try_again">আবার চেষ্টা করুন</string>
+    <string name="result_error">সংযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।</string>
+
+    <!-- Disease names -->
+    <string name="disease_anthracnose">অ্যানথ্রাকনোজ</string>
+    <string name="disease_bacterial_canker">ব্যাকটেরিয়াল ক্যাংকার</string>
+    <string name="disease_cutting_weevil">কাটিং উইভিল</string>
+    <string name="disease_die_back">ডাই ব্যাক</string>
+    <string name="disease_gall_midge">গল মিজ</string>
+    <string name="disease_healthy">সুস্থ ✅</string>
+    <string name="disease_powdery_mildew">পাউডারি মিলডিউ</string>
+    <string name="disease_sooty_mould">সুটি মোল্ড</string>
+
+    <!-- Permissions -->
+    <string name="permission_camera_rationale">ছবি তোলার জন্য ক্যামেরার অনুমতি প্রয়োজন</string>
+    <string name="permission_storage_rationale">গ্যালারি থেকে ছবি বেছে নিতে অনুমতি প্রয়োজন</string>
+    <string name="permission_denied">অনুমতি দেওয়া হয়নি</string>
+</resources>

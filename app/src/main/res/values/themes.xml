@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.MangoDiseaseDetector" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorPrimaryVariant">@color/green_dark</item>
+        <item name="colorSecondary">@color/yellow_accent</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+
+    <style name="Theme.MangoDiseaseDetector" parent="Base.Theme.MangoDiseaseDetector" />
+
+    <style name="Theme.MangoDiseaseDetector.Splash" parent="Base.Theme.MangoDiseaseDetector">
+        <item name="android:windowBackground">@color/green_primary</item>
+    </style>
+</resources>
