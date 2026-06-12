@@ -93,6 +93,40 @@
             android:textSize="16sp"
             android:visibility="gone" />
 
+        <!-- Advice steps card -->
+        <LinearLayout
+            android:id="@+id/layoutAdvice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_card_result"
+            android:elevation="4dp"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvAdviceHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="20sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="16dp"
+                android:background="#E0E0E0" />
+
+            <LinearLayout
+                android:id="@+id/layoutAdviceSteps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
         <Button
             android:id="@+id/btnTryAgain"
             android:layout_width="match_parent"
