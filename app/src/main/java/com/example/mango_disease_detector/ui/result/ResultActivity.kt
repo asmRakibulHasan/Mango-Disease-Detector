@@ -4,11 +4,13 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import android.view.Gravity
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -20,14 +22,21 @@ import com.example.mango_disease_detector.databinding.ActivityResultBinding
 import com.example.mango_disease_detector.utils.ImageUtils
 import com.example.mango_disease_detector.viewmodel.DetectorViewModel
 import com.example.mango_disease_detector.viewmodel.UiState
+import java.util.Locale
 
 data class AdviceStep(val emoji: String, val text: String)
 data class DiseaseAdvice(val headerTitle: String, val isHealthy: Boolean, val steps: List<AdviceStep>)
 
-class ResultActivity : AppCompatActivity() {
+class ResultActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var binding: ActivityResultBinding
     private val viewModel: DetectorViewModel by viewModels()
     private val bengaliNumerals = listOf("১", "২", "৩", "৪", "৫")
+
+    private var tts: TextToSpeech? = null
+    private var ttsReady = false
+    private var currentDiseaseName = ""
+    private var currentConfidenceText = ""
+    private var currentAdvice: DiseaseAdvice? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,12 +49,16 @@ class ResultActivity : AppCompatActivity() {
             insets
         }
 
+        tts = TextToSpeech(this, this)
+
         val uriString = intent.getStringExtra(EXTRA_IMAGE_URI) ?: run { finish(); return }
         val imageUri = Uri.parse(uriString)
 
         Glide.with(this).load(imageUri).into(binding.ivLeaf)
 
         binding.btnTryAgain.setOnClickListener { finish() }
+        binding.btnSpeakResult.setOnClickListener { speakResult() }
+        binding.btnSpeakAdvice.setOnClickListener { speakAdvice() }
 
         viewModel.uiState.observe(this) { state ->
             when (state) {
@@ -56,6 +69,45 @@ class ResultActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = tts?.setLanguage(Locale("bn", "BD"))
+            ttsReady = result != TextToSpeech.LANG_MISSING_DATA &&
+                    result != TextToSpeech.LANG_NOT_SUPPORTED
+        }
+    }
+
+    private fun speakResult() {
+        if (!ttsReady) {
+            Toast.makeText(this, "ভয়েস সাপোর্ট প্রস্তুত নয়", Toast.LENGTH_SHORT).show()
+            return
+        }
+        tts?.speak("$currentDiseaseName। $currentConfidenceText।", TextToSpeech.QUEUE_FLUSH, null, "result")
+    }
+
+    private fun speakAdvice() {
+        if (!ttsReady) {
+            Toast.makeText(this, "ভয়েস সাপোর্ট প্রস্তুত নয়", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val advice = currentAdvice ?: return
+        val sb = StringBuilder()
+        sb.append(stripEmojis(advice.headerTitle))
+        sb.append("। ")
+        advice.steps.forEachIndexed { i, step ->
+            sb.append("${i + 1}। ${step.text}। ")
+        }
+        tts?.speak(sb.toString(), TextToSpeech.QUEUE_FLUSH, null, "advice")
+    }
+
+    private fun stripEmojis(text: String): String =
+        text.filter { c ->
+            c.code in 0x0020..0x007E ||
+            c.code in 0x0980..0x09FF ||
+            c.code == 0x0964 ||
+            c.code == 0x0965
+        }.trim()
 
     private fun startPrediction(uri: Uri) {
         val file = ImageUtils.uriToCompressedFile(this, uri)
@@ -75,6 +127,9 @@ class ResultActivity : AppCompatActivity() {
         binding.layoutResult.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce))
 
         val bengaliName = diseaseNameMap[state.result.disease] ?: state.result.disease
+        currentDiseaseName = bengaliName
+        currentConfidenceText = "${getString(R.string.result_confidence)} ${"%.1f".format(state.result.confidence)} শতাংশ"
+
         binding.tvDiseaseName.text = bengaliName
         binding.tvConfidence.text = "${getString(R.string.result_confidence)}: ${"%.1f".format(state.result.confidence)}%"
 
@@ -88,6 +143,7 @@ class ResultActivity : AppCompatActivity() {
 
     private fun showAdvice(disease: String) {
         val advice = diseaseAdviceMap[disease] ?: return
+        currentAdvice = advice
 
         binding.tvAdviceHeader.text = advice.headerTitle
         binding.tvAdviceHeader.setTextColor(
@@ -151,6 +207,12 @@ class ResultActivity : AppCompatActivity() {
         binding.layoutResult.visibility = View.GONE
         binding.layoutAdvice.visibility = View.GONE
         binding.tvError.visibility = View.VISIBLE
+    }
+
+    override fun onDestroy() {
+        tts?.stop()
+        tts?.shutdown()
+        super.onDestroy()
     }
 
     companion object {
