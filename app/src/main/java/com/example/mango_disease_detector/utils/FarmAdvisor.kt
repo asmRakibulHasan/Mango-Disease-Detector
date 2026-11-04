@@ -6,7 +6,8 @@ import java.util.Calendar
 /** Ordered by severity: the list shown to farmers is sorted by this order. */
 enum class AdviceLevel { DANGER, CAUTION, GOOD, INFO }
 
-data class FarmAdvice(val level: AdviceLevel, val emoji: String, val text: String)
+/** One advice card: a short bold [title] and a one-or-two sentence [text]. */
+data class FarmAdvice(val level: AdviceLevel, val title: String, val text: String)
 
 /** Weather summary for the next 24 hours, starting at the current hour. */
 data class Next24h(
@@ -85,33 +86,33 @@ object FarmAdvisor {
 
         // Storm / strong wind (Kalbaishakhi season: March-May)
         if (n.maxGust >= STORM_GUST_KMH) {
-            val prefix = if (month in 3..5) "কালবৈশাখী ঝড়ের আশঙ্কা!" else "ঝড়ো বাতাসের আশঙ্কা!"
             out += FarmAdvice(
-                AdviceLevel.DANGER, "🌪️",
-                "$prefix বাতাস ঘণ্টায় ${BanglaFormat.number(n.maxGust)} কিমি পর্যন্ত হতে পারে। " +
+                AdviceLevel.DANGER,
+                if (month in 3..5) "কালবৈশাখী ঝড়ের আশঙ্কা" else "ঝড়ো বাতাসের আশঙ্কা",
+                "বাতাস ঘণ্টায় ${BanglaFormat.number(n.maxGust)} কিমি পর্যন্ত হতে পারে। " +
                         "আম ঝরে পড়তে পারে, দুর্বল ডাল খুঁটি দিয়ে বেঁধে দিন।"
             )
         } else if (n.maxGust >= WINDY_GUST_KMH) {
             out += FarmAdvice(
-                AdviceLevel.CAUTION, "💨",
-                "জোরে বাতাস বইতে পারে। আজ স্প্রে করবেন না, বাতাসে ওষুধ উড়ে যাবে।"
+                AdviceLevel.CAUTION, "জোরে বাতাসের সম্ভাবনা",
+                "আজ স্প্রে করবেন না, বাতাসে ওষুধ উড়ে যাবে।"
             )
         }
 
         // Heavy rain / waterlogging
         if (n.rainSum >= HEAVY_RAIN_MM) {
             out += FarmAdvice(
-                AdviceLevel.DANGER, "🌊",
-                "ভারী বৃষ্টির সম্ভাবনা। বাগানের নালা পরিষ্কার রাখুন, গাছের গোড়ায় পানি জমতে দেবেন না।"
+                AdviceLevel.DANGER, "ভারী বৃষ্টির সম্ভাবনা",
+                "বাগানের নালা পরিষ্কার রাখুন, গাছের গোড়ায় পানি জমতে দেবেন না।"
             )
         }
 
         // Spraying window
         if (n.maxRainChance >= NO_SPRAY_RAIN_CHANCE) {
             out += FarmAdvice(
-                AdviceLevel.CAUTION, "☔",
-                "আজ বৃষ্টি হতে পারে (সম্ভাবনা ${BanglaFormat.number(n.maxRainChance)}%)। " +
-                        "ছত্রাকনাশক বা কীটনাশক স্প্রে করবেন না, বৃষ্টিতে ধুয়ে যাবে।"
+                AdviceLevel.CAUTION, "আজ স্প্রে করবেন না",
+                "বৃষ্টির সম্ভাবনা ${BanglaFormat.number(n.maxRainChance)}%। " +
+                        "ছত্রাকনাশক বা কীটনাশক বৃষ্টিতে ধুয়ে যাবে।"
             )
         }
 
@@ -119,8 +120,8 @@ object FarmAdvisor {
         val wet = n.maxRainChance >= 50 || n.rainSum >= 2
         if (n.avgHumidity >= 80 && n.avgTemp in 20.0..32.0 && wet) {
             out += FarmAdvice(
-                AdviceLevel.DANGER, "🍂",
-                "অ্যানথ্রাকনোজ রোগের ঝুঁকি বেশি (ভেজা ও আর্দ্র আবহাওয়া)। " +
+                AdviceLevel.DANGER, "অ্যানথ্রাকনোজের ঝুঁকি",
+                "আবহাওয়া ভেজা ও আর্দ্র। পাতায় কালো দাগ খুঁজুন, " +
                         "বৃষ্টি থামলে ম্যানকোজেব বা কার্বেন্ডাজিম স্প্রে করুন।"
             )
         }
@@ -128,32 +129,30 @@ object FarmAdvisor {
         // Powdery mildew: flowering season, cool nights, humid air
         if (month in 1..3 && n.avgHumidity >= 60 && todayMin in 10.0..20.0) {
             out += FarmAdvice(
-                AdviceLevel.CAUTION, "🌼",
-                "পাউডারি মিলডিউ রোগের ঝুঁকি আছে (ঠান্ডা রাত, আর্দ্র বাতাস)। " +
-                        "মুকুলে সালফার জাতীয় ছত্রাকনাশক স্প্রে করুন।"
+                AdviceLevel.CAUTION, "পাউডারি মিলডিউর ঝুঁকি",
+                "রাত ঠান্ডা, বাতাস আর্দ্র। মুকুলে সাদা গুঁড়া দেখলে " +
+                        "সালফার জাতীয় ছত্রাকনাশক স্প্রে করুন।"
             )
         }
 
         // Heat stress with no rain coming
         if (todayMax >= HEAT_C && next3DaysRain < 2) {
             out += FarmAdvice(
-                AdviceLevel.CAUTION, "🌡️",
-                "তীব্র গরম (${BanglaFormat.temp(todayMax)})। বিকেলে গাছের গোড়ায় পানি দিন, " +
-                        "এতে আমের গুটি ঝরা কমবে।"
+                AdviceLevel.CAUTION, "তীব্র গরম (${BanglaFormat.temp(todayMax)})",
+                "বিকেলে গাছের গোড়ায় পানি দিন, এতে আমের গুটি ঝরা কমবে।"
             )
         }
 
         // No warnings: say whether today is a good day to work
         if (out.isEmpty()) {
             out += if (n.maxRainChance < 30 && n.maxGust < 30) {
-                val text = if (month in 5..7) {
-                    "আবহাওয়া ভালো। আম পাড়া ও স্প্রে করার জন্য উপযুক্ত দিন।"
-                } else {
-                    "আবহাওয়া ভালো। প্রয়োজন হলে আজ স্প্রে করার জন্য উপযুক্ত দিন।"
-                }
-                FarmAdvice(AdviceLevel.GOOD, "✅", text)
+                FarmAdvice(
+                    AdviceLevel.GOOD, "আজ কাজের ভালো দিন",
+                    if (month in 5..7) "আবহাওয়া ভালো। আম পাড়া ও স্প্রে করার জন্য উপযুক্ত দিন।"
+                    else "আবহাওয়া ভালো। প্রয়োজন হলে আজ স্প্রে করার জন্য উপযুক্ত দিন।"
+                )
             } else {
-                FarmAdvice(AdviceLevel.GOOD, "🌤️", "আবহাওয়া স্বাভাবিক। নিয়মিত বাগান পরিচর্যা চালিয়ে যান।")
+                FarmAdvice(AdviceLevel.GOOD, "আবহাওয়া স্বাভাবিক", "নিয়মিত বাগান পরিচর্যা চালিয়ে যান।")
             }
         }
 
@@ -164,28 +163,28 @@ object FarmAdvisor {
     /** Mango growth-stage tip for Bangladesh, by month. */
     fun seasonalTip(month: Int): FarmAdvice = when (month) {
         12, 1 -> FarmAdvice(
-            AdviceLevel.INFO, "🌸",
-            "মুকুল আসার আগের সময়। এখন গাছে সেচ দেবেন না, এতে মুকুল ভালো আসে।"
+            AdviceLevel.INFO, "মুকুল আসার আগের সময়",
+            "এখন গাছে সেচ দেবেন না, এতে মুকুল ভালো আসে।"
         )
         2, 3 -> FarmAdvice(
-            AdviceLevel.INFO, "🌼",
-            "মুকুল ও গুটি আসার সময়। হপার পোকা ও পাউডারি মিলডিউর দিকে নজর রাখুন।"
+            AdviceLevel.INFO, "মুকুল ও গুটি আসার সময়",
+            "হপার পোকা ও পাউডারি মিলডিউর দিকে নজর রাখুন।"
         )
         4, 5 -> FarmAdvice(
-            AdviceLevel.INFO, "🥭",
-            "গুটি বড় হওয়ার সময়। ১৫ দিন পরপর সেচ দিন, এতে গুটি ঝরা কমবে।"
+            AdviceLevel.INFO, "গুটি বড় হওয়ার সময়",
+            "১৫ দিন পরপর সেচ দিন, এতে গুটি ঝরা কমবে।"
         )
         6, 7 -> FarmAdvice(
-            AdviceLevel.INFO, "🧺",
-            "আম পাকা ও সংগ্রহের সময়। শুকনো দিনে, সকালের দিকে আম পাড়ুন।"
+            AdviceLevel.INFO, "আম পাকা ও সংগ্রহের সময়",
+            "শুকনো দিনে, সকালের দিকে আম পাড়ুন।"
         )
         8, 9 -> FarmAdvice(
-            AdviceLevel.INFO, "✂️",
+            AdviceLevel.INFO, "ডাল ছাঁটার সময়",
             "আম সংগ্রহের পর মরা, রোগা ও ঘন ডাল ছেঁটে দিন।"
         )
         else -> FarmAdvice(
-            AdviceLevel.INFO, "🌱",
-            "সার দেওয়ার সময়। গাছের গোড়ার চারপাশে সার দিয়ে হালকা সেচ দিন।"
+            AdviceLevel.INFO, "সার দেওয়ার সময়",
+            "গাছের গোড়ার চারপাশে সার দিয়ে হালকা সেচ দিন।"
         )
     }
 }

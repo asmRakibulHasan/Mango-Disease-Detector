@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="100dp"
+    android:layout_width="88dp"
     android:layout_height="wrap_content"
     android:layout_marginEnd="10dp"
-    android:background="@drawable/bg_card_result"
-    android:elevation="2dp"
+    android:background="@drawable/bg_day"
     android:gravity="center_horizontal"
     android:orientation="vertical"
     android:paddingStart="6dp"
@@ -16,32 +15,33 @@
         android:id="@+id/tvDay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-medium"
+        android:fontFamily="@font/hind_bold"
         android:maxLines="1"
-        android:textColor="@color/text_primary"
         android:textSize="15sp" />
 
-    <TextView
-        android:id="@+id/tvDayEmoji"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:textSize="34sp" />
+    <ImageView
+        android:id="@+id/ivDayIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="4dp"
+        android:importantForAccessibility="no" />
 
     <TextView
         android:id="@+id/tvDayMax"
+        style="@style/Text.Display"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:fontFamily="sans-serif-medium"
-        android:textColor="@color/disease_color"
-        android:textSize="18sp" />
+        android:layout_marginTop="4dp"
+        android:textColor="@color/red_deep"
+        android:textSize="19sp" />
 
     <TextView
         android:id="@+id/tvDayMin"
+        style="@style/Text.Heading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/advice_info"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/sky"
         android:textSize="16sp" />
 
     <TextView
@@ -49,6 +49,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:textColor="@color/text_secondary"
-        android:textSize="14sp" />
+        android:background="@drawable/bg_pill"
+        android:backgroundTint="@color/sky_light"
+        android:fontFamily="@font/hind_semibold"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:textColor="@color/sky_deep"
+        android:textSize="13sp" />
 </LinearLayout>

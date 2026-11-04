@@ -1,26 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/green_primary"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:clipChildren="true">
+
+    <!-- Decorative leaves -->
+    <ImageView
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="-70dp"
+        android:layout_marginEnd="-80dp"
+        android:alpha="0.18"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_leaf_blob" />
 
     <ImageView
-        android:id="@+id/ivLogo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@drawable/ic_leaf"
-        app:tint="@color/white" />
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="-70dp"
+        android:layout_marginBottom="-60dp"
+        android:alpha="0.18"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_leaf_blob" />
 
-    <TextView
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/logo"
+            android:layout_width="204dp"
+            android:layout_height="204dp"
+            android:background="@drawable/bg_logo_ring">
+
+            <ImageView
+                android:layout_width="128dp"
+                android:layout_height="128dp"
+                android:layout_gravity="center"
+                android:contentDescription="আম ও পাতা"
+                android:src="@drawable/ic_mango_logo" />
+        </FrameLayout>
+
+        <TextView
+            style="@style/Text.Display"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/app_name"
+            android:textColor="@color/white"
+            android:textSize="44sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/hind_medium"
+            android:text="@string/splash_tagline"
+            android:textColor="@color/cream_yellow"
+            android:textSize="19sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:fontFamily="sans-serif-medium"
-        android:text="@string/app_name"
-        android:textColor="@color/white"
-        android:textSize="28sp" />
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="72dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
 
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/dot1"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:background="@drawable/bg_circle"
+                android:backgroundTint="@color/mango" />
+
+            <View
+                android:id="@+id/dot2"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginStart="10dp"
+                android:alpha="0.55"
+                android:background="@drawable/bg_circle" />
+
+            <View
+                android:id="@+id/dot3"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginStart="10dp"
+                android:alpha="0.3"
+                android:background="@drawable/bg_circle" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/splash_footer"
+            android:textColor="@color/mint_text"
+            android:textSize="15sp" />
+    </LinearLayout>
+</FrameLayout>

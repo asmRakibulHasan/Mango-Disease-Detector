@@ -1,20 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvSkip"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_margin="16dp"
-        android:padding="8dp"
-        android:text="@string/btn_skip"
-        android:textColor="@color/green_primary"
-        android:textSize="16sp" />
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal"
+        android:paddingStart="24dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="16dp">
+
+        <TextView
+            android:id="@+id/tvStep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_pill"
+            android:backgroundTint="@color/sand_pill"
+            android:fontFamily="@font/hind_semibold"
+            android:paddingStart="14dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="6dp"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tvSkip"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:fontFamily="@font/hind_semibold"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="@string/btn_skip"
+            android:textColor="@color/green_primary"
+            android:textSize="17sp" />
+    </LinearLayout>
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
@@ -23,46 +56,60 @@
         android:layout_weight="1" />
 
     <LinearLayout
+        android:id="@+id/layoutDots"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="28dp"
         android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="16dp">
+        android:orientation="horizontal">
 
         <View
             android:id="@+id/dot1"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:layout_margin="4dp"
-            android:background="@drawable/bg_onboarding_indicator_active" />
+            android:layout_width="32dp"
+            android:layout_height="10dp"
+            android:background="@drawable/bg_pill"
+            android:backgroundTint="@color/green_primary" />
 
         <View
             android:id="@+id/dot2"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_margin="4dp"
-            android:background="@drawable/bg_onboarding_indicator_inactive" />
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_pill"
+            android:backgroundTint="@color/beige_dot" />
 
         <View
             android:id="@+id/dot3"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_margin="4dp"
-            android:background="@drawable/bg_onboarding_indicator_inactive" />
-
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_pill"
+            android:backgroundTint="@color/beige_dot" />
     </LinearLayout>
 
-    <Button
+    <LinearLayout
         android:id="@+id/btnNext"
+        style="@style/Button3D.Green"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="74dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/bg_button_green"
-        android:text="@string/btn_next"
-        android:textAllCaps="false"
-        android:textColor="@color/white"
-        android:textSize="18sp" />
+        android:layout_marginBottom="36dp">
 
+        <TextView
+            android:id="@+id/tvNext"
+            style="@style/Text.Heading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_next"
+            android:textColor="@color/white"
+            android:textSize="24sp" />
+
+        <ImageView
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_marginStart="12dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_chevron_right" />
+    </LinearLayout>
 </LinearLayout>

@@ -5,7 +5,7 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.math.roundToInt
 
-/** Bengali text helpers: digits, day names, weather descriptions. */
+/** Bengali text helpers: digits, day names, weather descriptions, greetings. */
 object BanglaFormat {
     private const val DIGITS = "০১২৩৪৫৬৭৮৯"
 
@@ -55,15 +55,13 @@ object BanglaFormat {
         else -> "মেঘলা আকাশ"
     }
 
-    fun weatherEmoji(code: Int, isDay: Boolean = true): String = when (code) {
-        0 -> if (isDay) "☀️" else "🌙"
-        1, 2 -> if (isDay) "⛅" else "☁️"
-        3 -> "☁️"
-        45, 48 -> "🌫️"
-        51, 53, 55, 56, 57, 61, 66, 80 -> "🌦️"
-        63, 65, 67, 81 -> "🌧️"
-        82, 95, 96, 99 -> "⛈️"
-        else -> "☁️"
+    /** Time-of-day greeting for the home screen. */
+    fun greeting(hour: Int): String = when (hour) {
+        in 4..11 -> "শুভ সকাল"
+        in 12..14 -> "শুভ দুপুর"
+        in 15..17 -> "শুভ বিকেল"
+        in 18..19 -> "শুভ সন্ধ্যা"
+        else -> "শুভ রাত্রি"
     }
 
     /** e.g. "আজ বিকেল ৩:২০" or "০৩/১১ সকাল ৯:০৫". */

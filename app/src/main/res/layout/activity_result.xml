@@ -1,187 +1,617 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@color/background"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:paddingStart="18dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="18dp"
+        android:paddingBottom="28dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:fontFamily="sans-serif-medium"
-            android:text="@string/result_title"
-            android:textColor="@color/green_primary"
-            android:textSize="22sp" />
-
-        <ImageView
-            android:id="@+id/ivLeaf"
+        <!-- Header -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="240dp"
-            android:background="@drawable/bg_card_result"
-            android:elevation="4dp"
-            android:scaleType="centerCrop" />
+            android:layout_height="48dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <!-- Loading state -->
+            <FrameLayout
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_r16"
+                android:clickable="true"
+                android:contentDescription="@string/btn_back"
+                android:elevation="2dp"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_chevron_left"
+                    app:tint="@color/text_primary" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tvHeaderTitle"
+                style="@style/Text.Heading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="@string/result_analyzing_header"
+                android:textSize="22sp" />
+        </LinearLayout>
+
+        <!-- Leaf photo -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="20dp"
+            app:cardBackgroundColor="@color/photo_bg"
+            app:cardCornerRadius="30dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <ImageView
+                android:id="@+id/ivLeaf"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/result_photo_desc"
+                android:scaleType="centerCrop" />
+
+            <FrameLayout
+                android:id="@+id/layoutScan"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <View
+                    android:id="@+id/scanLine"
+                    android:layout_width="match_parent"
+                    android:layout_height="22dp"
+                    android:background="@drawable/bg_scan_glow" />
+
+                <ImageView
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_gravity="top|start"
+                    android:layout_margin="18dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_corner" />
+
+                <ImageView
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="18dp"
+                    android:importantForAccessibility="no"
+                    android:rotation="90"
+                    android:src="@drawable/ic_corner" />
+
+                <ImageView
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="18dp"
+                    android:importantForAccessibility="no"
+                    android:rotation="180"
+                    android:src="@drawable/ic_corner" />
+
+                <ImageView
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_gravity="bottom|start"
+                    android:layout_margin="18dp"
+                    android:importantForAccessibility="no"
+                    android:rotation="270"
+                    android:src="@drawable/ic_corner" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ===== Analyzing ===== -->
         <LinearLayout
             android:id="@+id/layoutLoading"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:gravity="center"
             android:orientation="vertical"
             android:visibility="gone">
 
-            <ProgressBar
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:indeterminateTint="@color/green_primary" />
+            <TextView
+                style="@style/Text.Display"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:gravity="center"
+                android:text="@string/result_analyzing"
+                android:textColor="@color/green_primary"
+                android:textSize="28sp" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/result_analyzing"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:text="@string/result_analyzing_sub"
                 android:textColor="@color/text_secondary"
-                android:textSize="16sp" />
+                android:textSize="17sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:background="@drawable/bg_r24"
+                android:elevation="3dp"
+                android:orientation="vertical"
+                android:paddingStart="18dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
+
+                    <FrameLayout
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="@drawable/bg_circle"
+                        android:backgroundTint="@color/green_primary">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="center"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_check" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:fontFamily="@font/hind_semibold"
+                        android:text="@string/result_step_sent"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/beige" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
+
+                    <FrameLayout
+                        android:id="@+id/stepActive"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="@drawable/bg_step_active">
+
+                        <View
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_gravity="center"
+                            android:background="@drawable/bg_circle"
+                            android:backgroundTint="@color/text_primary" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:fontFamily="@font/hind_bold"
+                        android:text="@string/result_step_finding"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/beige" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
+
+                    <View
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="@drawable/bg_step_pending"
+                        android:layerType="software" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:fontFamily="@font/hind_medium"
+                        android:text="@string/result_step_advice"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="18sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:background="@drawable/bg_r18"
+                android:backgroundTint="@color/sky_light"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="14dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_info_line"
+                    app:tint="@color/sky" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:lineSpacingMultiplier="1.2"
+                    android:text="@string/result_analyzing_note"
+                    android:textColor="@color/sky_deep"
+                    android:textSize="15sp" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Result card -->
+        <!-- ===== Result ===== -->
         <LinearLayout
             android:id="@+id/layoutResult"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:background="@drawable/bg_card_result"
-            android:elevation="4dp"
             android:orientation="vertical"
-            android:padding="24dp"
             android:visibility="gone">
 
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_marginTop="16dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="6dp"
+                app:strokeWidth="0dp">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/tvDiseaseName"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:id="@+id/layoutBanner"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/green_primary"
-                        android:textSize="28sp" />
+                        android:background="@color/red"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="18dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="18dp"
+                        android:paddingBottom="10dp">
 
-                    <TextView
-                        android:id="@+id/tvConfidence"
-                        android:layout_width="wrap_content"
+                        <ImageView
+                            android:id="@+id/ivBanner"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_warning_line" />
+
+                        <TextView
+                            android:id="@+id/tvBanner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:fontFamily="@font/hind_bold"
+                            android:textColor="@color/white"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="18sp" />
+                        android:orientation="vertical"
+                        android:paddingStart="18dp"
+                        android:paddingTop="16dp"
+                        android:paddingEnd="18dp"
+                        android:paddingBottom="18dp">
 
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvDiseaseName"
+                                    style="@style/Text.Display"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/red_deep"
+                                    android:textSize="32sp" />
+
+                                <TextView
+                                    android:id="@+id/tvDiseaseType"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:background="@drawable/bg_pill"
+                                    android:backgroundTint="@color/butter"
+                                    android:fontFamily="@font/hind_bold"
+                                    android:paddingStart="10dp"
+                                    android:paddingTop="3dp"
+                                    android:paddingEnd="10dp"
+                                    android:paddingBottom="3dp"
+                                    android:textColor="@color/amber_text"
+                                    android:textSize="14sp" />
+                            </LinearLayout>
+
+                            <FrameLayout
+                                android:id="@+id/btnSpeakResult"
+                                android:layout_width="60dp"
+                                android:layout_height="64dp"
+                                android:layout_marginStart="12dp"
+                                android:background="@drawable/bg_circle3d_green"
+                                android:clickable="true"
+                                android:contentDescription="@string/result_listen"
+                                android:focusable="true"
+                                android:paddingBottom="4dp">
+
+                                <ImageView
+                                    android:layout_width="28dp"
+                                    android:layout_height="28dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_speaker" />
+                            </FrameLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/hind_semibold"
+                                android:text="@string/result_confidence"
+                                android:textColor="@color/ink_soft"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvConfidence"
+                                style="@style/Text.Display"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="20sp" />
+                        </LinearLayout>
+
+                        <ProgressBar
+                            android:id="@+id/progressConfidence"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="14dp"
+                            android:layout_marginTop="6dp"
+                            android:max="100"
+                            android:progressDrawable="@drawable/bg_progress_confidence" />
+                    </LinearLayout>
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                <ImageButton
-                    android:id="@+id/btnSpeakResult"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="12dp"
-                    android:background="@drawable/bg_speak_button"
-                    android:contentDescription="ভয়েস"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_volume_up" />
+            <!-- Advice -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layoutAdvice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="6dp"
+                app:strokeWidth="0dp">
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/layoutAdviceHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/mango"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="18dp"
+                        android:paddingTop="12dp"
+                        android:paddingEnd="18dp"
+                        android:paddingBottom="12dp">
+
+                        <TextView
+                            android:id="@+id/tvAdviceHeader"
+                            style="@style/Text.Display"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textSize="22sp" />
+
+                        <FrameLayout
+                            android:id="@+id/btnSpeakAdvice"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:background="@drawable/bg_circle"
+                            android:backgroundTint="@color/text_primary"
+                            android:clickable="true"
+                            android:contentDescription="@string/result_listen_advice"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_gravity="center"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_speaker"
+                                app:tint="@color/mango" />
+                        </FrameLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/layoutAdviceSteps"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="16dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="10dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:id="@+id/btnTryAgain"
+                style="@style/Button3D.Green"
+                android:layout_width="match_parent"
+                android:layout_height="74dp"
+                android:layout_marginTop="20dp">
+
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_camera_line" />
+
+                <TextView
+                    style="@style/Text.Heading"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/btn_photo_again"
+                    android:textColor="@color/white"
+                    android:textSize="22sp" />
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/btnWeather"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_btn_outline_sky"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_cloud_line"
+                    app:tint="@color/sky" />
+
+                <TextView
+                    style="@style/Text.Heading"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/btn_check_weather"
+                    android:textColor="@color/sky"
+                    android:textSize="20sp" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Error state -->
-        <TextView
-            android:id="@+id/tvError"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:gravity="center"
-            android:text="@string/result_error"
-            android:textColor="@color/disease_color"
-            android:textSize="16sp"
-            android:visibility="gone" />
-
-        <!-- Advice steps card -->
+        <!-- ===== Error ===== -->
         <LinearLayout
-            android:id="@+id/layoutAdvice"
+            android:id="@+id/layoutError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:background="@drawable/bg_card_result"
-            android:elevation="4dp"
+            android:background="@drawable/bg_r24"
+            android:backgroundTint="@color/danger_bg"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
             android:padding="20dp"
             android:visibility="gone">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_r16"
+                android:backgroundTint="@color/danger_icon">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_warning_line" />
+            </FrameLayout>
+
+            <TextView
+                style="@style/Text.Heading"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="@string/result_error"
+                android:textColor="@color/danger_title"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:id="@+id/btnRetry"
+                style="@style/Button3D.Green"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:layout_marginTop="18dp">
 
                 <TextView
-                    android:id="@+id/tvAdviceHeader"
-                    android:layout_width="0dp"
+                    style="@style/Text.Heading"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:fontFamily="sans-serif-medium"
-                    android:textSize="20sp" />
-
-                <ImageButton
-                    android:id="@+id/btnSpeakAdvice"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="12dp"
-                    android:background="@drawable/bg_speak_button"
-                    android:contentDescription="ভয়েস"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_volume_up" />
-
+                    android:text="@string/btn_try_again"
+                    android:textColor="@color/white"
+                    android:textSize="21sp" />
             </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="16dp"
-                android:background="#E0E0E0" />
-
-            <LinearLayout
-                android:id="@+id/layoutAdviceSteps"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
         </LinearLayout>
-
-        <Button
-            android:id="@+id/btnTryAgain"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_marginTop="32dp"
-            android:background="@drawable/bg_button_green"
-            android:text="@string/btn_try_again"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textSize="18sp" />
-
     </LinearLayout>
 </ScrollView>

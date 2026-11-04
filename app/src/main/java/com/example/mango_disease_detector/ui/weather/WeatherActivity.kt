@@ -1,13 +1,12 @@
 package com.example.mango_disease_detector.ui.weather
 
 import android.Manifest
-import android.graphics.drawable.GradientDrawable
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -21,11 +20,11 @@ import com.example.mango_disease_detector.data.WeatherPrefs
 import com.example.mango_disease_detector.databinding.ActivityWeatherBinding
 import com.example.mango_disease_detector.databinding.ItemAdviceBinding
 import com.example.mango_disease_detector.databinding.ItemForecastDayBinding
-import com.example.mango_disease_detector.utils.AdviceLevel
 import com.example.mango_disease_detector.utils.BanglaFormat
 import com.example.mango_disease_detector.utils.FarmAdvice
 import com.example.mango_disease_detector.utils.FarmAdvisor
 import com.example.mango_disease_detector.utils.LocationHelper
+import com.example.mango_disease_detector.utils.edgeToEdge
 import com.example.mango_disease_detector.viewmodel.WeatherUiState
 import com.example.mango_disease_detector.viewmodel.WeatherViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -55,7 +54,7 @@ class WeatherActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        edgeToEdge()
         binding = ActivityWeatherBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
@@ -73,7 +72,7 @@ class WeatherActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.swipeRefresh.setColorSchemeResources(R.color.green_primary)
         binding.swipeRefresh.setOnRefreshListener { startLoad() }
 
-        WeatherPrefs.loadPlace(this)?.let { binding.tvLocation.text = "📍 ${it.name}" }
+        WeatherPrefs.loadPlace(this)?.let { binding.tvLocation.text = it.name }
 
         viewModel.state.observe(this) { render(it) }
 
@@ -190,22 +189,20 @@ class WeatherActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val today = FarmAdvisor.todayIndex(w)
         val next = FarmAdvisor.next24h(w)
 
-        binding.tvLocation.text = "📍 ${s.placeName}"
+        binding.tvLocation.text = s.placeName
         binding.tvOffline.visibility = if (s.fromCache) View.VISIBLE else View.GONE
 
         binding.tvTemperature.text = BanglaFormat.temp(current.temperature)
         binding.tvCondition.text = BanglaFormat.weatherText(current.weatherCode)
-        binding.tvWeatherEmoji.text = BanglaFormat.weatherEmoji(current.weatherCode, current.isDay == 1)
-        binding.tvFeelsLike.text = getString(R.string.weather_feels_like, BanglaFormat.temp(current.feelsLike))
+        binding.ivWeatherIcon.setImageResource(weatherIconRes(current.weatherCode, current.isDay == 1))
 
+        val details = mutableListOf(getString(R.string.weather_feels_like, BanglaFormat.temp(current.feelsLike)))
         val max = daily?.tempMax?.getOrNull(today)
         val min = daily?.tempMin?.getOrNull(today)
         if (max != null && min != null) {
-            binding.tvMaxMin.text = getString(R.string.weather_max_min, BanglaFormat.temp(max), BanglaFormat.temp(min))
-            binding.tvMaxMin.visibility = View.VISIBLE
-        } else {
-            binding.tvMaxMin.visibility = View.GONE
+            details += getString(R.string.weather_max_min, BanglaFormat.temp(max), BanglaFormat.temp(min))
         }
+        binding.tvDetails.text = details.joinToString(" · ")
 
         binding.tvHumidity.text = BanglaFormat.number(current.humidity) + "%"
         binding.tvRainChance.text = BanglaFormat.number(next.maxRainChance) + "%"
@@ -224,19 +221,16 @@ class WeatherActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.layoutAdvice.removeAllViews()
         advice.forEach { item ->
             val row = ItemAdviceBinding.inflate(layoutInflater, binding.layoutAdvice, false)
-            val (strong, soft) = when (item.level) {
-                AdviceLevel.DANGER -> R.color.advice_danger to R.color.advice_danger_bg
-                AdviceLevel.CAUTION -> R.color.advice_caution to R.color.advice_caution_bg
-                AdviceLevel.GOOD -> R.color.advice_good to R.color.advice_good_bg
-                AdviceLevel.INFO -> R.color.advice_info to R.color.advice_info_bg
-            }
-            row.root.background = GradientDrawable().apply {
-                cornerRadius = dpToPx(16).toFloat()
-                setColor(getColor(soft))
-                setStroke(dpToPx(2), getColor(strong))
-            }
-            row.tvAdviceEmoji.text = item.emoji
+            val style = AdviceStyle.of(item.level)
+            row.root.backgroundTintList = ColorStateList.valueOf(getColor(style.bg))
+            row.adviceTile.backgroundTintList = ColorStateList.valueOf(getColor(style.icon))
+            row.ivAdviceIcon.setImageResource(style.drawable)
+            row.tvAdviceLabel.setText(style.label)
+            row.tvAdviceLabel.setTextColor(getColor(style.labelColor))
+            row.tvAdviceTitle.text = item.title
+            row.tvAdviceTitle.setTextColor(getColor(style.title))
             row.tvAdviceText.text = item.text
+            row.tvAdviceText.setTextColor(getColor(style.body))
             binding.layoutAdvice.addView(row.root)
         }
     }
@@ -249,11 +243,11 @@ class WeatherActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val offset = i - today
             val item = ItemForecastDayBinding.inflate(layoutInflater, binding.layoutForecast, false)
             item.tvDay.text = BanglaFormat.dayLabel(daily.time[i], offset)
-            item.tvDayEmoji.text = BanglaFormat.weatherEmoji(daily.weatherCode.getOrNull(i) ?: 3)
+            item.ivDayIcon.setImageResource(weatherIconRes(daily.weatherCode.getOrNull(i) ?: 3))
             item.tvDayMax.text = daily.tempMax.getOrNull(i)?.let { BanglaFormat.temp(it) } ?: "-"
             item.tvDayMin.text = daily.tempMin.getOrNull(i)?.let { BanglaFormat.temp(it) } ?: "-"
-            item.tvDayRain.text = "☔ " + (daily.rainChance.getOrNull(i)?.let { BanglaFormat.number(it) + "%" } ?: "-")
-            if (offset == 0) item.root.setBackgroundResource(R.drawable.bg_forecast_today)
+            item.tvDayRain.text = daily.rainChance.getOrNull(i)?.let { BanglaFormat.number(it) + "%" } ?: "-"
+            if (offset == 0) item.root.setBackgroundResource(R.drawable.bg_day_today)
             binding.layoutForecast.addView(item.root)
         }
     }
@@ -275,13 +269,11 @@ class WeatherActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             append("বাতাসের আর্দ্রতা ${BanglaFormat.number(current.humidity)} শতাংশ। ")
             append("বৃষ্টির সম্ভাবনা ${BanglaFormat.number(next.maxRainChance)} শতাংশ। ")
             append("পরামর্শ। ")
-            s.advice.forEach { append(it.text).append(" ") }
+            s.advice.forEach { append(it.title).append("। ").append(it.text).append(" ") }
         }
         val spoken = text.replace("%", " শতাংশ").replace("°", " ডিগ্রি").replace("(", "। ").replace(")", "")
         tts?.speak(spoken, TextToSpeech.QUEUE_FLUSH, null, "weather")
     }
-
-    private fun dpToPx(dp: Int) = (dp * resources.displayMetrics.density).toInt()
 
     override fun onDestroy() {
         tts?.stop()

@@ -1,17 +1,16 @@
 package com.example.mango_disease_detector.ui.result
 
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
-import android.view.Gravity
 import android.view.View
 import android.view.animation.AnimationUtils
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.view.animation.LinearInterpolator
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -19,28 +18,33 @@ import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
 import com.example.mango_disease_detector.R
 import com.example.mango_disease_detector.databinding.ActivityResultBinding
+import com.example.mango_disease_detector.databinding.ItemStepBinding
+import com.example.mango_disease_detector.ui.weather.WeatherActivity
+import com.example.mango_disease_detector.utils.BanglaFormat
 import com.example.mango_disease_detector.utils.ImageUtils
+import com.example.mango_disease_detector.utils.edgeToEdge
 import com.example.mango_disease_detector.viewmodel.DetectorViewModel
 import com.example.mango_disease_detector.viewmodel.UiState
+import java.io.File
 import java.util.Locale
-
-data class AdviceStep(val emoji: String, val text: String)
-data class DiseaseAdvice(val headerTitle: String, val isHealthy: Boolean, val steps: List<AdviceStep>)
+import kotlin.math.roundToInt
 
 class ResultActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var binding: ActivityResultBinding
     private val viewModel: DetectorViewModel by viewModels()
-    private val bengaliNumerals = listOf("১", "২", "৩", "৪", "৫")
 
     private var tts: TextToSpeech? = null
     private var ttsReady = false
+    private var uploadFile: File? = null
+    private var scanAnimator: ObjectAnimator? = null
+
     private var currentDiseaseName = ""
-    private var currentConfidenceText = ""
-    private var currentAdvice: DiseaseAdvice? = null
+    private var currentConfidence = 0
+    private var currentInfo: DiseaseInfo? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        edgeToEdge()
         binding = ActivityResultBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
@@ -56,7 +60,13 @@ class ResultActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         Glide.with(this).load(imageUri).into(binding.ivLeaf)
 
+        binding.btnBack.setOnClickListener { finish() }
         binding.btnTryAgain.setOnClickListener { finish() }
+        binding.btnRetry.setOnClickListener { retry(imageUri) }
+        binding.btnWeather.setOnClickListener {
+            startActivity(Intent(this, WeatherActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        }
         binding.btnSpeakResult.setOnClickListener { speakResult() }
         binding.btnSpeakAdvice.setOnClickListener { speakAdvice() }
 
@@ -78,138 +88,174 @@ class ResultActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun speakResult() {
-        if (!ttsReady) {
-            Toast.makeText(this, "ভয়েস সাপোর্ট প্রস্তুত নয়", Toast.LENGTH_SHORT).show()
+    // ---------- Prediction ----------
+
+    private fun startPrediction(uri: Uri) {
+        val file = try {
+            ImageUtils.uriToCompressedFile(this, uri)
+        } catch (e: Exception) {
+            showError()
             return
         }
-        tts?.speak("$currentDiseaseName। $currentConfidenceText।", TextToSpeech.QUEUE_FLUSH, null, "result")
+        uploadFile = file
+        viewModel.predict(file)
+    }
+
+    private fun retry(uri: Uri) {
+        val file = uploadFile
+        if (file != null && file.exists()) viewModel.predict(file) else startPrediction(uri)
+    }
+
+    // ---------- States ----------
+
+    private fun showLoading() {
+        binding.tvHeaderTitle.setText(R.string.result_analyzing_header)
+        setPhotoHeight(300)
+        binding.layoutScan.visibility = View.VISIBLE
+        binding.layoutLoading.visibility = View.VISIBLE
+        binding.layoutResult.visibility = View.GONE
+        binding.layoutError.visibility = View.GONE
+        startScan()
+        binding.stepActive.startAnimation(AnimationUtils.loadAnimation(this, R.anim.pulse))
+    }
+
+    private fun showError() {
+        stopScan()
+        binding.tvHeaderTitle.setText(R.string.result_title)
+        setPhotoHeight(210)
+        binding.layoutScan.visibility = View.GONE
+        binding.layoutLoading.visibility = View.GONE
+        binding.layoutResult.visibility = View.GONE
+        binding.layoutError.visibility = View.VISIBLE
+    }
+
+    private fun showResult(state: UiState.Success) {
+        stopScan()
+        binding.tvHeaderTitle.setText(R.string.result_title)
+        setPhotoHeight(210)
+        binding.layoutScan.visibility = View.GONE
+        binding.layoutLoading.visibility = View.GONE
+        binding.layoutError.visibility = View.GONE
+        binding.layoutResult.visibility = View.VISIBLE
+        binding.layoutResult.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in))
+
+        val info = DiseaseInfo.of(state.result.disease)
+        currentInfo = info
+        currentDiseaseName = info?.name ?: state.result.disease
+        currentConfidence = state.result.confidence.roundToInt().coerceIn(0, 100)
+        val healthy = info?.isHealthy == true
+
+        // Banner
+        binding.layoutBanner.setBackgroundColor(getColor(if (healthy) R.color.green_primary else R.color.red))
+        binding.ivBanner.setImageResource(if (healthy) R.drawable.ic_check else R.drawable.ic_warning_line)
+        binding.tvBanner.setText(if (healthy) R.string.result_banner_healthy else R.string.result_banner_disease)
+
+        // Name + type
+        binding.tvDiseaseName.text = currentDiseaseName
+        binding.tvDiseaseName.setTextColor(getColor(if (healthy) R.color.green_primary else R.color.red_deep))
+        binding.tvDiseaseType.text = info?.type.orEmpty()
+        binding.tvDiseaseType.visibility = if (info != null) View.VISIBLE else View.GONE
+        binding.tvDiseaseType.backgroundTintList =
+            ColorStateList.valueOf(getColor(if (healthy) R.color.mint else R.color.butter))
+        binding.tvDiseaseType.setTextColor(getColor(if (healthy) R.color.green_primary else R.color.amber_text))
+
+        // Confidence
+        binding.tvConfidence.text = BanglaFormat.digits(currentConfidence.toString()) + "%"
+        binding.progressConfidence.progressTintList =
+            ColorStateList.valueOf(getColor(if (healthy) R.color.leaf else R.color.orange))
+        ObjectAnimator.ofInt(binding.progressConfidence, "progress", 0, currentConfidence)
+            .setDuration(700).start()
+
+        showAdvice(info, healthy)
+    }
+
+    private fun showAdvice(info: DiseaseInfo?, healthy: Boolean) {
+        if (info == null) {
+            binding.layoutAdvice.visibility = View.GONE
+            return
+        }
+        binding.tvAdviceHeader.text = getString(
+            if (healthy) R.string.result_care_header else R.string.result_advice_header,
+            BanglaFormat.digits(info.steps.size.toString())
+        )
+        binding.layoutAdviceHeader.setBackgroundColor(getColor(if (healthy) R.color.mint_strong else R.color.mango))
+
+        binding.layoutAdviceSteps.removeAllViews()
+        info.steps.forEachIndexed { index, step ->
+            val row = ItemStepBinding.inflate(layoutInflater, binding.layoutAdviceSteps, false)
+            row.tvStepNumber.text = BanglaFormat.digits((index + 1).toString())
+            row.stepTile.backgroundTintList = ColorStateList.valueOf(getColor(step.icon.tile))
+            row.ivStepIcon.setImageResource(step.icon.icon)
+            row.ivStepIcon.imageTintList = ColorStateList.valueOf(getColor(step.icon.tint))
+            row.tvStepText.text = step.text
+            binding.layoutAdviceSteps.addView(row.root)
+            if (index < info.steps.lastIndex) {
+                binding.layoutAdviceSteps.addView(View(this).apply {
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT, dpToPx(1)
+                    )
+                    setBackgroundColor(getColor(R.color.beige))
+                })
+            }
+        }
+        binding.layoutAdvice.visibility = View.VISIBLE
+    }
+
+    private fun setPhotoHeight(dp: Int) {
+        binding.cardPhoto.layoutParams = binding.cardPhoto.layoutParams.apply { height = dpToPx(dp) }
+    }
+
+    private fun startScan() {
+        if (scanAnimator != null) return
+        binding.cardPhoto.post {
+            val travel = (binding.cardPhoto.height - binding.scanLine.height).toFloat()
+            scanAnimator = ObjectAnimator.ofFloat(binding.scanLine, View.TRANSLATION_Y, 0f, travel).apply {
+                duration = 1600
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.REVERSE
+                interpolator = LinearInterpolator()
+                start()
+            }
+        }
+    }
+
+    private fun stopScan() {
+        scanAnimator?.cancel()
+        scanAnimator = null
+        binding.stepActive.clearAnimation()
+    }
+
+    // ---------- Voice ----------
+
+    private fun speakResult() {
+        if (!ttsReady) {
+            Toast.makeText(this, getString(R.string.weather_voice_not_ready), Toast.LENGTH_SHORT).show()
+            return
+        }
+        val text = "$currentDiseaseName। ${getString(R.string.result_confidence)} " +
+                "${BanglaFormat.digits(currentConfidence.toString())} শতাংশ।"
+        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "result")
     }
 
     private fun speakAdvice() {
         if (!ttsReady) {
-            Toast.makeText(this, "ভয়েস সাপোর্ট প্রস্তুত নয়", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.weather_voice_not_ready), Toast.LENGTH_SHORT).show()
             return
         }
-        val advice = currentAdvice ?: return
-        val sb = StringBuilder()
-        sb.append(stripEmojis(advice.headerTitle))
-        sb.append("। ")
-        advice.steps.forEachIndexed { i, step ->
-            sb.append("${i + 1}। ${step.text}। ")
-        }
-        tts?.speak(sb.toString(), TextToSpeech.QUEUE_FLUSH, null, "advice")
-    }
-
-    private fun stripEmojis(text: String): String =
-        text.filter { c ->
-            c.code in 0x0020..0x007E ||
-            c.code in 0x0980..0x09FF ||
-            c.code == 0x0964 ||
-            c.code == 0x0965
-        }.trim()
-
-    private fun startPrediction(uri: Uri) {
-        val file = ImageUtils.uriToCompressedFile(this, uri)
-        viewModel.predict(file)
-    }
-
-    private fun showLoading() {
-        binding.layoutLoading.visibility = View.VISIBLE
-        binding.layoutResult.visibility = View.GONE
-        binding.tvError.visibility = View.GONE
-    }
-
-    private fun showResult(state: UiState.Success) {
-        binding.layoutLoading.visibility = View.GONE
-        binding.tvError.visibility = View.GONE
-        binding.layoutResult.visibility = View.VISIBLE
-        binding.layoutResult.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce))
-
-        val bengaliName = diseaseNameMap[state.result.disease] ?: state.result.disease
-        currentDiseaseName = bengaliName
-        currentConfidenceText = "${getString(R.string.result_confidence)} ${"%.1f".format(state.result.confidence)} শতাংশ"
-
-        binding.tvDiseaseName.text = bengaliName
-        binding.tvConfidence.text = "${getString(R.string.result_confidence)}: ${"%.1f".format(state.result.confidence)}%"
-
-        val isHealthy = state.result.disease.equals("Healthy", ignoreCase = true)
-        binding.tvDiseaseName.setTextColor(
-            getColor(if (isHealthy) R.color.healthy_color else R.color.disease_color)
-        )
-
-        showAdvice(state.result.disease)
-    }
-
-    private fun showAdvice(disease: String) {
-        val advice = diseaseAdviceMap[disease] ?: return
-        currentAdvice = advice
-
-        binding.tvAdviceHeader.text = advice.headerTitle
-        binding.tvAdviceHeader.setTextColor(
-            getColor(if (advice.isHealthy) R.color.healthy_color else R.color.yellow_accent)
-        )
-
-        binding.layoutAdviceSteps.removeAllViews()
-        advice.steps.forEachIndexed { index, step ->
-            binding.layoutAdviceSteps.addView(createStepView(index + 1, step.emoji, step.text, advice.isHealthy))
-        }
-
-        binding.layoutAdvice.visibility = View.VISIBLE
-        binding.layoutAdvice.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in))
-    }
-
-    private fun createStepView(number: Int, emoji: String, stepText: String, isHealthy: Boolean): View {
-        val row = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).also { it.bottomMargin = dpToPx(14) }
-        }
-
-        val circleColor = getColor(if (isHealthy) R.color.green_primary else R.color.yellow_accent)
-        val circleSize = dpToPx(44)
-
-        val numView = TextView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(circleSize, circleSize)
-            gravity = Gravity.CENTER
-            setText(bengaliNumerals[number - 1])
-            textSize = 16f
-            setTypeface(null, Typeface.BOLD)
-            setTextColor(getColor(R.color.white))
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(circleColor)
+        val info = currentInfo ?: return
+        val text = buildString {
+            append(binding.tvAdviceHeader.text).append("। ")
+            info.steps.forEachIndexed { i, step ->
+                append(BanglaFormat.digits((i + 1).toString())).append("। ").append(step.text).append("। ")
             }
         }
-
-        val textView = TextView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
-            ).also { it.marginStart = dpToPx(12) }
-            setText("$emoji  $stepText")
-            textSize = 16f
-            setTextColor(getColor(R.color.text_primary))
-            setLineSpacing(0f, 1.2f)
-        }
-
-        row.addView(numView)
-        row.addView(textView)
-        return row
+        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "advice")
     }
 
     private fun dpToPx(dp: Int) = (dp * resources.displayMetrics.density).toInt()
 
-    private fun showError() {
-        binding.layoutLoading.visibility = View.GONE
-        binding.layoutResult.visibility = View.GONE
-        binding.layoutAdvice.visibility = View.GONE
-        binding.tvError.visibility = View.VISIBLE
-    }
-
     override fun onDestroy() {
+        stopScan()
         tts?.stop()
         tts?.shutdown()
         super.onDestroy()
@@ -217,107 +263,5 @@ class ResultActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
         const val EXTRA_IMAGE_URI = "extra_image_uri"
-
-        val diseaseNameMap = mapOf(
-            "Anthracnose" to "অ্যানথ্রাকনোজ",
-            "Bacterial Canker" to "ব্যাকটেরিয়াল ক্যাংকার",
-            "Cutting Weevil" to "কাটিং উইভিল",
-            "Die Back" to "ডাই ব্যাক",
-            "Gall Midge" to "গল মিজ",
-            "Healthy" to "সুস্থ ✅",
-            "Powdery Mildew" to "পাউডারি মিলডিউ",
-            "Sooty Mould" to "সুটি মোল্ড"
-        )
-
-        val diseaseAdviceMap = mapOf(
-            "Anthracnose" to DiseaseAdvice(
-                headerTitle = "⚠️ করণীয় পদক্ষেপ",
-                isHealthy = false,
-                steps = listOf(
-                    AdviceStep("🍂", "আক্রান্ত পাতা ও ফল গাছ থেকে তুলে ফেলুন"),
-                    AdviceStep("🔥", "তুলে ফেলা পাতা মাটিতে পুঁতে বা পুড়িয়ে দিন"),
-                    AdviceStep("💊", "ম্যানকোজেব বা কপার অক্সিক্লোরাইড স্প্রে করুন"),
-                    AdviceStep("🔁", "প্রতি ১৫ দিনে একবার স্প্রে করুন"),
-                    AdviceStep("💧", "গাছের গোড়ায় পানি জমতে দেবেন না")
-                )
-            ),
-            "Bacterial Canker" to DiseaseAdvice(
-                headerTitle = "⚠️ করণীয় পদক্ষেপ",
-                isHealthy = false,
-                steps = listOf(
-                    AdviceStep("✂️", "আক্রান্ত ডাল ও পাতা কেটে সরিয়ে দিন"),
-                    AdviceStep("🟤", "কাটা জায়গায় বোর্দো পেস্ট লাগান"),
-                    AdviceStep("💊", "কপার হাইড্রোক্সাইড স্প্রে করুন"),
-                    AdviceStep("🔁", "প্রতি ১০ দিনে একবার স্প্রে করুন"),
-                    AdviceStep("🗑️", "রোগাক্রান্ত অংশ মাটিতে পুঁতে ফেলুন")
-                )
-            ),
-            "Cutting Weevil" to DiseaseAdvice(
-                headerTitle = "⚠️ করণীয় পদক্ষেপ",
-                isHealthy = false,
-                steps = listOf(
-                    AdviceStep("✂️", "আক্রান্ত ডালপালা কেটে ফেলুন"),
-                    AdviceStep("💊", "ক্লোরপাইরিফস কীটনাশক স্প্রে করুন"),
-                    AdviceStep("👋", "পোকা হাতে বেছে মেরে ফেলুন"),
-                    AdviceStep("🧹", "গাছের চারপাশ পরিষ্কার রাখুন"),
-                    AdviceStep("👁️", "প্রতি সপ্তাহে গাছ পরীক্ষা করুন")
-                )
-            ),
-            "Die Back" to DiseaseAdvice(
-                headerTitle = "⚠️ করণীয় পদক্ষেপ",
-                isHealthy = false,
-                steps = listOf(
-                    AdviceStep("✂️", "মরা ও শুকনো ডাল কেটে ফেলুন"),
-                    AdviceStep("🟤", "কাটা জায়গায় বোর্দো পেস্ট লাগান"),
-                    AdviceStep("💊", "কার্বেন্ডাজিম স্প্রে করুন"),
-                    AdviceStep("🌱", "গাছে পর্যাপ্ত সার ও পানি দিন"),
-                    AdviceStep("👁️", "প্রতি ১৫ দিনে গাছ পরীক্ষা করুন")
-                )
-            ),
-            "Gall Midge" to DiseaseAdvice(
-                headerTitle = "⚠️ করণীয় পদক্ষেপ",
-                isHealthy = false,
-                steps = listOf(
-                    AdviceStep("🔥", "আক্রান্ত কুঁড়ি ও পাতা তুলে পুড়িয়ে দিন"),
-                    AdviceStep("💊", "ইমিডাক্লোপ্রিড কীটনাশক স্প্রে করুন"),
-                    AdviceStep("📅", "ফুল আসার আগেই স্প্রে দিন"),
-                    AdviceStep("🧹", "বাগান সবসময় পরিষ্কার রাখুন"),
-                    AdviceStep("🔁", "প্রতি ১০ দিনে একবার স্প্রে করুন")
-                )
-            ),
-            "Healthy" to DiseaseAdvice(
-                headerTitle = "✅ সুসংবাদ! গাছ সুস্থ আছে",
-                isHealthy = true,
-                steps = listOf(
-                    AdviceStep("😊", "গাছ ভালো আছে, চিন্তার কিছু নেই!"),
-                    AdviceStep("💧", "নিয়মিত সঠিক পরিমাণে পানি দিন"),
-                    AdviceStep("🌱", "সময়মতো সার দিন"),
-                    AdviceStep("🧹", "গাছের চারপাশ পরিষ্কার রাখুন"),
-                    AdviceStep("👁️", "প্রতি সপ্তাহে গাছ পরীক্ষা করুন")
-                )
-            ),
-            "Powdery Mildew" to DiseaseAdvice(
-                headerTitle = "⚠️ করণীয় পদক্ষেপ",
-                isHealthy = false,
-                steps = listOf(
-                    AdviceStep("🍃", "আক্রান্ত পাতা ও ফুল সরিয়ে ফেলুন"),
-                    AdviceStep("💊", "সালফার বা হেক্সাকোনাজল স্প্রে করুন"),
-                    AdviceStep("🔁", "প্রতি ১০ দিনে একবার স্প্রে দিন"),
-                    AdviceStep("💧", "গাছে অতিরিক্ত পানি দেবেন না"),
-                    AdviceStep("🌬️", "গাছের পাশে বায়ু চলাচল ভালো রাখুন")
-                )
-            ),
-            "Sooty Mould" to DiseaseAdvice(
-                headerTitle = "⚠️ করণীয় পদক্ষেপ",
-                isHealthy = false,
-                steps = listOf(
-                    AdviceStep("🧴", "সাবান-পানি মিশিয়ে পাতা মুছে দিন"),
-                    AdviceStep("💊", "কীটনাশক স্প্রে করে পোকামাকড় দূর করুন"),
-                    AdviceStep("✂️", "আক্রান্ত পাতা কেটে সরিয়ে দিন"),
-                    AdviceStep("☀️", "গাছে পর্যাপ্ত আলো ও বায়ু নিশ্চিত করুন"),
-                    AdviceStep("👁️", "প্রতি ১৫ দিনে গাছ পরীক্ষা করুন")
-                )
-            )
-        )
     }
 }

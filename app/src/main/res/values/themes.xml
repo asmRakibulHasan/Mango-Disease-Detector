@@ -1,15 +1,54 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Base.Theme.MangoDiseaseDetector" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.MangoDiseaseDetector" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/green_primary</item>
-        <item name="colorPrimaryVariant">@color/green_dark</item>
-        <item name="colorSecondary">@color/yellow_accent</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/mango</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/text_primary</item>
         <item name="android:colorBackground">@color/background</item>
         <item name="android:windowBackground">@color/background</item>
+        <item name="android:fontFamily">@font/hind</item>
+        <item name="fontFamily">@font/hind</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="Theme.MangoDiseaseDetector" parent="Base.Theme.MangoDiseaseDetector" />
 
     <style name="Theme.MangoDiseaseDetector.Splash" parent="Base.Theme.MangoDiseaseDetector">
         <item name="android:windowBackground">@color/green_primary</item>
+        <item name="android:navigationBarColor">@color/green_primary</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <!-- Text styles -->
+    <style name="Text.Display" parent="">
+        <item name="android:fontFamily">@font/baloo_extrabold</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="Text.Heading" parent="">
+        <item name="android:fontFamily">@font/baloo_bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="Text.Body" parent="">
+        <item name="android:fontFamily">@font/hind_medium</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+    </style>
+
+    <!-- 3D pressable buttons: content needs paddingBottom = shadow depth -->
+    <style name="Button3D.Green" parent="">
+        <item name="android:background">@drawable/bg_btn3d_green</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingBottom">6dp</item>
     </style>
 </resources>

@@ -58,7 +58,7 @@ class FarmAdvisorTest {
         )
     }
 
-    private fun texts(w: WeatherResponse) = FarmAdvisor.advise(w).map { it.text }
+    private fun texts(w: WeatherResponse) = FarmAdvisor.advise(w).map { "${it.title} ${it.text}" }
 
     @Test
     fun next24h_startsAtCurrentHour_andCoversOneDay() {
@@ -84,7 +84,7 @@ class FarmAdvisorTest {
     fun strongGustInKalbaishakhiSeason_isStormDanger() {
         val advice = FarmAdvisor.advise(weather(date = "2026-04-15", gust = 75.0))
         assertEquals(AdviceLevel.DANGER, advice.first().level)
-        assertTrue(advice.first().text.contains("কালবৈশাখী"))
+        assertTrue(advice.first().title.contains("কালবৈশাখী"))
     }
 
     @Test

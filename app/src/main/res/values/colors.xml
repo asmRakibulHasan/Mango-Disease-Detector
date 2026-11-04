@@ -1,36 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="green_primary">#2E7D32</color>
-    <color name="green_dark">#1B5E20</color>
-    <color name="green_light">#4CAF50</color>
-    <color name="green_surface">#E8F5E9</color>
+    <!-- Greens -->
+    <color name="green_primary">#1F7A3A</color>
+    <color name="green_deep">#0F4D24</color>
+    <color name="leaf">#3FA34D</color>
+    <color name="leaf_soft">#9BE07A</color>
+    <color name="mint">#E7F5E9</color>
+    <color name="mint_strong">#BFE6C5</color>
+    <color name="mint_text">#D4EFD9</color>
+    <color name="photo_bg">#2F6B3A</color>
 
-    <color name="yellow_accent">#F9A825</color>
-    <color name="yellow_light">#FFF9C4</color>
-
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
-    <color name="text_on_green">#FFFFFF</color>
-
-    <color name="background">#F5F5F5</color>
+    <!-- Cream / ink -->
+    <color name="background">#FFF8EC</color>
     <color name="card_background">#FFFFFF</color>
+    <color name="text_primary">#2B2118</color>
+    <color name="ink_soft">#4A3B2C</color>
+    <color name="text_secondary">#6B5A45</color>
+    <color name="beige">#F1E6D2</color>
+    <color name="beige_dot">#E3D3B4</color>
+    <color name="sand_pill">#FCEBCB</color>
+    <color name="dashed">#CDBB9A</color>
 
-    <color name="healthy_color">#2E7D32</color>
-    <color name="disease_color">#C62828</color>
+    <!-- Mango / warm -->
+    <color name="mango">#FFB627</color>
+    <color name="mango_deep">#D98A00</color>
+    <color name="sun">#FFD166</color>
+    <color name="butter">#FFF0CC</color>
+    <color name="cream_yellow">#FFE7A8</color>
+    <color name="cream_light">#FFF4D6</color>
+    <color name="mango_skin">#FFD98A</color>
+    <color name="orange">#F47C20</color>
+    <color name="apricot">#FF9F5A</color>
+    <color name="peach">#FFE3D3</color>
+    <color name="peach_icon">#C2410C</color>
+    <color name="amber_icon">#B45309</color>
+    <color name="amber_text">#7A4B00</color>
 
-    <color name="weather_card_start">#1B5E20</color>
-    <color name="weather_card_end">#43A047</color>
-    <color name="weather_text_soft">#DDFFFFFF</color>
+    <!-- Sky -->
+    <color name="sky">#1E6BB8</color>
+    <color name="sky_light">#E3F0FC</color>
+    <color name="sky_text">#D6E8FA</color>
+    <color name="sky_deep">#154F8A</color>
 
-    <color name="advice_danger">#C62828</color>
-    <color name="advice_danger_bg">#FFEBEE</color>
-    <color name="advice_caution">#EF8F00</color>
-    <color name="advice_caution_bg">#FFF8E1</color>
-    <color name="advice_good">#2E7D32</color>
-    <color name="advice_good_bg">#E8F5E9</color>
-    <color name="advice_info">#1565C0</color>
-    <color name="advice_info_bg">#E3F2FD</color>
+    <!-- Red -->
+    <color name="red">#C62828</color>
+    <color name="red_deep">#B71C1C</color>
+
+    <!-- Advice cards: icon / background / label / title / body -->
+    <color name="danger_icon">#C62828</color>
+    <color name="danger_bg">#FFEBEE</color>
+    <color name="danger_label">#B71C1C</color>
+    <color name="danger_title">#7F1414</color>
+    <color name="danger_body">#4A2020</color>
+
+    <color name="caution_icon">#EF8F00</color>
+    <color name="caution_bg">#FFF4DC</color>
+    <color name="caution_label">#8A4B00</color>
+    <color name="caution_title">#5C3300</color>
+    <color name="caution_body">#4A3B2C</color>
+
+    <color name="good_icon">#1F7A3A</color>
+    <color name="good_bg">#E7F5E9</color>
+    <color name="good_label">#1F7A3A</color>
+    <color name="good_title">#0F4D24</color>
+    <color name="good_body">#2B3A2E</color>
+
+    <color name="info_icon">#1E6BB8</color>
+    <color name="info_bg">#E3F0FC</color>
+    <color name="info_label">#154F8A</color>
+    <color name="info_title">#0F3A66</color>
+    <color name="info_body">#24364A</color>
 </resources>

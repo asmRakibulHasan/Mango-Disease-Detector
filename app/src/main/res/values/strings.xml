@@ -1,67 +1,94 @@
 <resources>
     <string name="app_name">আমের রোগ নির্ণয়</string>
 
+    <!-- Splash -->
+    <string name="splash_tagline">পাতার ছবি দিন, রোগ জানুন</string>
+    <string name="splash_footer">আম চাষির বিশ্বস্ত সাথী</string>
+
     <!-- Onboarding -->
+    <string name="onboarding_step">ধাপ %1$s / %2$s</string>
     <string name="onboarding_title_1">ছবি তুলুন</string>
-    <string name="onboarding_desc_1">আপনার আমের পাতার ছবি তুলুন</string>
+    <string name="onboarding_desc_1">আপনার আমের পাতার একটি পরিষ্কার ছবি তুলুন</string>
     <string name="onboarding_title_2">AI বিশ্লেষণ</string>
-    <string name="onboarding_desc_2">আমাদের AI রোগ শনাক্ত করবে</string>
+    <string name="onboarding_desc_2">আমাদের AI কয়েক সেকেন্ডে রোগ শনাক্ত করবে</string>
     <string name="onboarding_title_3">চিকিৎসা জানুন</string>
-    <string name="onboarding_desc_3">সঠিক চিকিৎসা জানুন</string>
+    <string name="onboarding_desc_3">সহজ ভাষায় করণীয় কাজ ও আবহাওয়ার পরামর্শ পান</string>
     <string name="btn_next">পরবর্তী</string>
     <string name="btn_start">শুরু করুন</string>
     <string name="btn_skip">এড়িয়ে যান</string>
 
     <!-- Home -->
+    <string name="home_greeting">%1$s, কৃষক ভাই</string>
     <string name="home_title">আমের রোগ নির্ণয়</string>
-    <string name="home_subtitle">পাতার ছবি তুলুন বা বেছে নিন</string>
+    <string name="home_check_title">পাতার রোগ পরীক্ষা করুন</string>
     <string name="btn_camera">ছবি তুলুন</string>
     <string name="btn_gallery">গ্যালারি থেকে বেছে নিন</string>
+    <string name="home_weather_label">আজকের আবহাওয়া</string>
+    <string name="home_weather_tap">দেখতে চাপ দিন</string>
+    <string name="home_urgent_advice">%1$sটি জরুরি পরামর্শ</string>
+    <string name="home_no_urgent_advice">জরুরি কিছু নেই</string>
+    <string name="home_tips_title">ভালো ছবির জন্য</string>
+    <string name="home_tip_one_leaf">একটি পাতা</string>
+    <string name="home_tip_daylight">দিনের আলো</string>
+    <string name="home_tip_close">কাছ থেকে</string>
+
+    <!-- Analyzing -->
+    <string name="result_analyzing_header">রোগ নির্ণয়</string>
+    <string name="result_analyzing">বিশ্লেষণ করা হচ্ছে…</string>
+    <string name="result_analyzing_sub">একটু অপেক্ষা করুন, প্রায় হয়ে এসেছে</string>
+    <string name="result_step_sent">ছবি পাঠানো হয়েছে</string>
+    <string name="result_step_finding">রোগ খোঁজা হচ্ছে</string>
+    <string name="result_step_advice">পরামর্শ তৈরি</string>
+    <string name="result_analyzing_note">প্রথমবার একটু সময় লাগতে পারে। ইন্টারনেট চালু রাখুন।</string>
 
     <!-- Result -->
     <string name="result_title">রোগ নির্ণয়ের ফলাফল</string>
+    <string name="result_photo_desc">আপনার তোলা পাতার ছবি</string>
+    <string name="result_banner_disease">রোগ ধরা পড়েছে</string>
+    <string name="result_banner_healthy">গাছ সুস্থ আছে</string>
     <string name="result_confidence">নিশ্চিততা</string>
-    <string name="result_analyzing">বিশ্লেষণ করা হচ্ছে…</string>
+    <string name="result_advice_header">করণীয় %1$sটি কাজ</string>
+    <string name="result_care_header">যত্নের %1$sটি কাজ</string>
+    <string name="result_listen">ফলাফল শুনুন</string>
+    <string name="result_listen_advice">পরামর্শ শুনুন</string>
+    <string name="result_error">সংযোগে সমস্যা হয়েছে। ইন্টারনেট দেখে আবার চেষ্টা করুন।</string>
+    <string name="btn_photo_again">আবার ছবি তুলুন</string>
+    <string name="btn_check_weather">স্প্রের আগে আবহাওয়া দেখুন</string>
     <string name="btn_try_again">আবার চেষ্টা করুন</string>
-    <string name="result_error">সংযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।</string>
-
-    <!-- Disease names -->
-    <string name="disease_anthracnose">অ্যানথ্রাকনোজ</string>
-    <string name="disease_bacterial_canker">ব্যাকটেরিয়াল ক্যাংকার</string>
-    <string name="disease_cutting_weevil">কাটিং উইভিল</string>
-    <string name="disease_die_back">ডাই ব্যাক</string>
-    <string name="disease_gall_midge">গল মিজ</string>
-    <string name="disease_healthy">সুস্থ ✅</string>
-    <string name="disease_powdery_mildew">পাউডারি মিলডিউ</string>
-    <string name="disease_sooty_mould">সুটি মোল্ড</string>
 
     <!-- Permissions -->
-    <string name="permission_camera_rationale">ছবি তোলার জন্য ক্যামেরার অনুমতি প্রয়োজন</string>
-    <string name="permission_storage_rationale">গ্যালারি থেকে ছবি বেছে নিতে অনুমতি প্রয়োজন</string>
     <string name="permission_denied">অনুমতি দেওয়া হয়নি</string>
+
     <!-- Weather -->
-    <string name="btn_weather">আবহাওয়া</string>
     <string name="weather_title">আবহাওয়া ও পরামর্শ</string>
+    <string name="weather_listen">সব শুনুন</string>
     <string name="weather_change_location">স্থান বদলান</string>
     <string name="weather_choose_location">আপনার জেলা বেছে নিন</string>
-    <string name="weather_my_location">📍 আমার বর্তমান অবস্থান</string>
+    <string name="weather_my_location">আমার বর্তমান অবস্থান (GPS)</string>
     <string name="weather_my_location_name">আমার অবস্থান</string>
     <string name="weather_loading">আবহাওয়ার তথ্য আনা হচ্ছে…</string>
     <string name="weather_finding_location">আপনার অবস্থান খোঁজা হচ্ছে…</string>
     <string name="weather_error">আবহাওয়ার তথ্য আনা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।</string>
-    <string name="weather_offline">⚠️ ইন্টারনেট নেই — আগের তথ্য দেখানো হচ্ছে</string>
+    <string name="weather_offline">ইন্টারনেট নেই — আগের তথ্য দেখানো হচ্ছে</string>
     <string name="weather_updated">সর্বশেষ আপডেট: %1$s</string>
     <string name="weather_location_not_found">অবস্থান পাওয়া যায়নি। আপনার জেলা বেছে নিন।</string>
     <string name="weather_humidity">আর্দ্রতা</string>
     <string name="weather_rain_chance">বৃষ্টি</string>
     <string name="weather_wind">বাতাস</string>
-    <string name="weather_wind_unit">%1$s কিমি/ঘ</string>
+    <string name="weather_wind_unit">%1$s কিমি</string>
     <string name="weather_max_min">সর্বোচ্চ %1$s · সর্বনিম্ন %2$s</string>
     <string name="weather_feels_like">অনুভূত %1$s</string>
-    <string name="weather_advice_title">🌾 আম চাষির জন্য পরামর্শ</string>
-    <string name="weather_forecast_title">🌦️ ৭ দিনের পূর্বাভাস</string>
+    <string name="weather_advice_title">আম চাষির জন্য পরামর্শ</string>
+    <string name="weather_forecast_title">৭ দিনের পূর্বাভাস</string>
     <string name="weather_source">আবহাওয়ার তথ্যসূত্র: Open-Meteo.com</string>
     <string name="weather_voice_not_ready">ভয়েস সাপোর্ট প্রস্তুত নয়</string>
+
+    <!-- Advice levels -->
+    <string name="advice_label_danger">বিপদ</string>
+    <string name="advice_label_caution">সাবধান</string>
+    <string name="advice_label_good">ভালো খবর</string>
+    <string name="advice_label_info">মৌসুমি কাজ</string>
+
     <string name="btn_cancel">বাতিল</string>
     <string name="btn_back">ফিরে যান</string>
 </resources>

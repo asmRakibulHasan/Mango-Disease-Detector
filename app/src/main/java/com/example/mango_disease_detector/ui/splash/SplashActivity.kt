@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.animation.AnimationUtils
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -13,13 +12,14 @@ import com.example.mango_disease_detector.R
 import com.example.mango_disease_detector.databinding.ActivitySplashBinding
 import com.example.mango_disease_detector.ui.home.HomeActivity
 import com.example.mango_disease_detector.ui.onboarding.OnboardingActivity
+import com.example.mango_disease_detector.utils.edgeToEdge
 
 class SplashActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySplashBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        edgeToEdge(lightIcons = true)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
@@ -28,7 +28,7 @@ class SplashActivity : AppCompatActivity() {
             insets
         }
 
-        binding.ivLogo.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in))
+        binding.logo.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce))
 
         Handler(Looper.getMainLooper()).postDelayed({
             val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)

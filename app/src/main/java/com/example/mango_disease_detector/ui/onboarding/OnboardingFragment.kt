@@ -20,7 +20,7 @@ class OnboardingFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.tvTitle.text = arguments?.getString(ARG_TITLE)
         binding.tvDesc.text = arguments?.getString(ARG_DESC)
-        arguments?.getInt(ARG_IMAGE)?.let { binding.ivOnboarding.setImageResource(it) }
+        arguments?.getInt(ARG_IMAGE)?.let { binding.ivBadge.setImageResource(it) }
     }
 
     override fun onDestroyView() {
