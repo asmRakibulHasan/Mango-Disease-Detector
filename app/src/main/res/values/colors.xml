@@ -20,4 +20,17 @@
 
     <color name="healthy_color">#2E7D32</color>
     <color name="disease_color">#C62828</color>
+
+    <color name="weather_card_start">#1B5E20</color>
+    <color name="weather_card_end">#43A047</color>
+    <color name="weather_text_soft">#DDFFFFFF</color>
+
+    <color name="advice_danger">#C62828</color>
+    <color name="advice_danger_bg">#FFEBEE</color>
+    <color name="advice_caution">#EF8F00</color>
+    <color name="advice_caution_bg">#FFF8E1</color>
+    <color name="advice_good">#2E7D32</color>
+    <color name="advice_good_bg">#E8F5E9</color>
+    <color name="advice_info">#1565C0</color>
+    <color name="advice_info_bg">#E3F2FD</color>
 </resources>

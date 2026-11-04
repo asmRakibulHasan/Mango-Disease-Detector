@@ -39,4 +39,29 @@
     <string name="permission_camera_rationale">ছবি তোলার জন্য ক্যামেরার অনুমতি প্রয়োজন</string>
     <string name="permission_storage_rationale">গ্যালারি থেকে ছবি বেছে নিতে অনুমতি প্রয়োজন</string>
     <string name="permission_denied">অনুমতি দেওয়া হয়নি</string>
+    <!-- Weather -->
+    <string name="btn_weather">আবহাওয়া</string>
+    <string name="weather_title">আবহাওয়া ও পরামর্শ</string>
+    <string name="weather_change_location">স্থান বদলান</string>
+    <string name="weather_choose_location">আপনার জেলা বেছে নিন</string>
+    <string name="weather_my_location">📍 আমার বর্তমান অবস্থান</string>
+    <string name="weather_my_location_name">আমার অবস্থান</string>
+    <string name="weather_loading">আবহাওয়ার তথ্য আনা হচ্ছে…</string>
+    <string name="weather_finding_location">আপনার অবস্থান খোঁজা হচ্ছে…</string>
+    <string name="weather_error">আবহাওয়ার তথ্য আনা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।</string>
+    <string name="weather_offline">⚠️ ইন্টারনেট নেই — আগের তথ্য দেখানো হচ্ছে</string>
+    <string name="weather_updated">সর্বশেষ আপডেট: %1$s</string>
+    <string name="weather_location_not_found">অবস্থান পাওয়া যায়নি। আপনার জেলা বেছে নিন।</string>
+    <string name="weather_humidity">আর্দ্রতা</string>
+    <string name="weather_rain_chance">বৃষ্টি</string>
+    <string name="weather_wind">বাতাস</string>
+    <string name="weather_wind_unit">%1$s কিমি/ঘ</string>
+    <string name="weather_max_min">সর্বোচ্চ %1$s · সর্বনিম্ন %2$s</string>
+    <string name="weather_feels_like">অনুভূত %1$s</string>
+    <string name="weather_advice_title">🌾 আম চাষির জন্য পরামর্শ</string>
+    <string name="weather_forecast_title">🌦️ ৭ দিনের পূর্বাভাস</string>
+    <string name="weather_source">আবহাওয়ার তথ্যসূত্র: Open-Meteo.com</string>
+    <string name="weather_voice_not_ready">ভয়েস সাপোর্ট প্রস্তুত নয়</string>
+    <string name="btn_cancel">বাতিল</string>
+    <string name="btn_back">ফিরে যান</string>
 </resources>

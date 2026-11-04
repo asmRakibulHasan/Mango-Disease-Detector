@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,8 +13,11 @@ import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.mango_disease_detector.R
+import com.example.mango_disease_detector.data.WeatherPrefs
 import com.example.mango_disease_detector.databinding.ActivityHomeBinding
 import com.example.mango_disease_detector.ui.result.ResultActivity
+import com.example.mango_disease_detector.ui.weather.WeatherActivity
+import com.example.mango_disease_detector.utils.BanglaFormat
 import com.example.mango_disease_detector.utils.PermissionUtils
 import java.io.File
 
@@ -67,6 +71,23 @@ class HomeActivity : AppCompatActivity() {
         binding.btnGallery.setOnClickListener {
             if (PermissionUtils.hasStoragePermission(this)) launchGallery()
             else storagePermissionLauncher.launch(PermissionUtils.storagePermissions())
+        }
+
+        binding.btnWeather.setOnClickListener {
+            startActivity(Intent(this, WeatherActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val cached = WeatherPrefs.loadCache(this)?.response?.current
+        if (cached != null) {
+            binding.tvHomeWeatherTemp.text = "· " + BanglaFormat.weatherEmoji(cached.weatherCode, cached.isDay == 1) +
+                    " " + BanglaFormat.temp(cached.temperature)
+            binding.tvHomeWeatherTemp.visibility = View.VISIBLE
+        } else {
+            binding.tvHomeWeatherTemp.visibility = View.GONE
         }
     }
 
