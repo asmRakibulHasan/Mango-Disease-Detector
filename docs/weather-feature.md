@@ -10,7 +10,8 @@
 | Weather source | [Open-Meteo](https://open-meteo.com): free, no API key |
 | Location | Coarse GPS, or manual pick from 64 districts |
 | Offline | Last forecast cached, shown for up to 3 days |
-| Branch | `feature/weather-advice` (commit `96623fe`) |
+| History | Added in `96623fe`; restyled to the v2 design in `ffddc5f` |
+| Visual design | See **Design system** and **Screen 6** in [`APP_DOCUMENTATION.md`](APP_DOCUMENTATION.md) |
 
 ---
 
@@ -81,7 +82,9 @@ flowchart TD
 | Data | `data/WeatherPrefs` | Saved location + offline cache |
 | Data | `data/Districts` | 64 districts with coordinates, nearest-district lookup |
 | Logic | `utils/FarmAdvisor` | Rule-based mango farming advice (pure Kotlin, unit-tested) |
-| Logic | `utils/BanglaFormat` | Bengali digits, day names, weather text/emoji, time labels |
+| Logic | `utils/BanglaFormat` | Bengali digits, day names, weather text, greetings, time labels |
+| UI | `ui/weather/WeatherIcons` | WMO code → `wx_*` weather icon |
+| UI | `ui/weather/AdviceStyle` | Advice level → label, icon, colours |
 | Platform | `utils/LocationHelper` | Coarse location via `LocationManager` (no Play Services) |
 
 ### UI state
@@ -100,199 +103,65 @@ The ViewModel survives screen rotation, so the forecast is **not** fetched again
 
 ## 📱 Screen-by-screen walkthrough
 
-### Screen 1: Home (updated)
+Full mockups, colours and component specs are in [`APP_DOCUMENTATION.md`](APP_DOCUMENTATION.md) (Design system, Screen 3 Home, Screen 6 Weather). This section covers the weather-specific behaviour.
 
-A third large button was added below Gallery. After the first successful load, it also shows the cached weather icon and temperature.
-
-```
-┌──────────────────────────────┐
-│            🍃                │
-│      আমের রোগ নির্ণয়           │
-│   পাতার ছবি তুলুন বা বেছে নিন      │
-│                              │
-│ ┌──────────────────────────┐ │
-│ │   📷  ছবি তুলুন             │ │  ← existing (green)
-│ └──────────────────────────┘ │
-│ ┌──────────────────────────┐ │
-│ │   🖼  গ্যালারি থেকে বেছে নিন   │ │  ← existing (outline)
-│ └──────────────────────────┘ │
-│ ┌──────────────────────────┐ │
-│ │ ☀  আবহাওয়া · ☁️ ২৫°        │ │  ← NEW (outline, yellow sun)
-│ └──────────────────────────┘ │
-└──────────────────────────────┘
-```
+### Home entry points
 
 | Element | ID | Behaviour |
 |---------|----|-----------|
-| Weather button | `btnWeather` | Opens `WeatherActivity` with a slide animation |
-| Temp badge | `tvHomeWeatherTemp` | Refreshed in `onResume()` from cache; hidden if no cache |
+| Weather chip (green header) | `chipWeather` | Cached weather icon + temperature; opens Weather; hidden with no cache |
+| Weather card (sky blue) | `btnWeather` | Opens Weather; shows "২৫° · আংশিক মেঘলা" and a badge: "Nটি জরুরি পরামর্শ" (count of DANGER + CAUTION) or "জরুরি কিছু নেই"; with no cache it shows "দেখতে চাপ দিন" |
+| Place | `tvPlace` | Saved district name |
+| Result screen link | `btnWeather` in `activity_result.xml` | "স্প্রের আগে আবহাওয়া দেখুন" opens Weather from a disease result |
 
-**Files:** `activity_home.xml`, `HomeActivity.kt`, `drawable/ic_weather.xml`
+All of these refresh in `HomeActivity.onResume()` from `WeatherPrefs.loadCache()`.
 
----
-
-### Screen 2: Location permission (first launch only)
-
-On the first open with no saved location, Android's system dialog asks for **approximate location**.
+### Weather screen layout
 
 ```
 ┌──────────────────────────────┐
-│  Allow আমের রোগ নির্ণয় to access  │
-│  this device's approximate   │
-│  location?                   │
-│                              │
-│      While using the app     │ → GPS flow (Screen 3)
-│      Only this time          │ → GPS flow (Screen 3)
-│      Don't allow             │ → District picker (Screen 4)
+│ [‹]  আবহাওয়া ও পরামর্শ       (🔊) │  ← back tile, raised green speaker
+│ 📍 ঢাকা             (স্থান বদলান) │  ← tvLocation, btnChangeLocation
+│ ┌ offline banner ┐             │  ← tvOffline (only from cache)
+│ ╭────────────────────────────╮│
+│ │ ২৫°                  ◖☁◗  ││  ← tvTemperature, ivWeatherIcon (white)
+│ │ আংশিক মেঘলা                 ││  ← tvCondition
+│ │ অনুভূত ২৮° · সর্বোচ্চ ৩০° · সর্বনিম্ন ২৪° ││  ← tvDetails
+│ │ [💧 ৮২%][🌧 ০%][≋ ৭ কিমি]     ││  ← tvHumidity, tvRainChance, tvWind
+│ ╰────────────────────────────╯│
+│           সর্বশেষ আপডেট: আজ রাত ১০:৫০ │  ← tvUpdated
+│ 🍃 আম চাষির জন্য পরামর্শ           │
+│ [advice cards]                 │  ← layoutAdvice ← item_advice.xml
+│ ৭ দিনের পূর্বাভাস                  │
+│ [আজ][আগামীকাল][শুক্র] … →        │  ← layoutForecast ← item_forecast_day.xml
+│   আবহাওয়ার তথ্যসূত্র: Open-Meteo.com │
 └──────────────────────────────┘
 ```
 
-- Only `ACCESS_COARSE_LOCATION` is requested. District-level accuracy is enough for weather, and it feels less invasive to farmers.
-- If permission is denied, a toast "অনুমতি দেওয়া হয়নি" appears and the district picker opens.
+| Section | Data source |
+|---------|-------------|
+| Temperature, condition, icon | `current.temperature`, `current.weatherCode`, `current.isDay` |
+| Details line | `current.feelsLike`, `daily.tempMax/Min[today]` |
+| Rain tile | **max rain chance over the next 24 h** (`FarmAdvisor.next24h`) |
+| Advice | `FarmAdvisor.advise()` → `AdviceStyle.of(level)` |
+| Forecast | `daily[today..]`; today uses `bg_day_today` |
 
----
+### States
 
-### Screen 3: Finding location / Loading
+| State | Display |
+|-------|---------|
+| First open, no permission | Android "approximate location" dialog |
+| `Loading(findingLocation = true)` | Sky spinner + "আপনার অবস্থান খোঁজা হচ্ছে…" (max 10 s) |
+| `Loading()` | Sky spinner + "আবহাওয়ার তথ্য আনা হচ্ছে…" (pull-to-refresh keeps old content visible) |
+| District picker | Light Material dialog: "আমার বর্তমান অবস্থান (GPS)" + 64 districts in Bengali order + বাতিল |
+| `Success(fromCache = true)` | Normal screen + orange banner "ইন্টারনেট নেই — আগের তথ্য দেখানো হচ্ছে" |
+| `Error` | Light-blue card: cloud tile, error text, raised **আবার চেষ্টা করুন** |
 
-```
-┌──────────────────────────────┐
-│ ←  আবহাওয়া ও পরামর্শ        (🔊) │
-│                  [স্থান বদলান] │
-│                              │
-│             ◌                │
-│   আপনার অবস্থান খোঁজা হচ্ছে…      │  ← while getting GPS (max 10 s)
-│   আবহাওয়ার তথ্য আনা হচ্ছে…       │  ← while calling the API
-└──────────────────────────────┘
-```
+### District picker rules
 
-| State | Text |
-|-------|------|
-| `Loading(findingLocation = true)` | আপনার অবস্থান খোঁজা হচ্ছে… |
-| `Loading()` | আবহাওয়ার তথ্য আনা হচ্ছে… |
-
-On **pull-to-refresh**, the old content stays visible and only the swipe spinner shows.
-
----
-
-### Screen 4: District picker
-
-Opens from the **স্থান বদলান** button, or automatically when permission is denied or GPS finds nothing.
-
-```
-┌──────────────────────────────┐
-│  আপনার জেলা বেছে নিন              │
-│                              │
-│  📍 আমার বর্তমান অবস্থান          │ ← re-tries GPS
-│  কক্সবাজার                     │
-│  কিশোরগঞ্জ                     │
-│  কুড়িগ্রাম                      │
-│  …  (all 64, Bengali order)  │
-│                       বাতিল  │
-└──────────────────────────────┘
-```
-
-- The list is sorted with a Bengali `Collator`.
-- Choosing a district saves it (`isGps = false`) and loads its forecast.
-- **বাতিল (Cancel)** closes the dialog. If no location was ever chosen, it also closes the screen, because there is nothing to show.
-- If no location is saved yet, the dialog cannot be dismissed by tapping outside it.
-
----
-
-### Screen 5: Weather (main content)
-
-```
-┌──────────────────────────────┐
-│ ←  আবহাওয়া ও পরামর্শ        (🔊) │  ← header + voice button
-│ 📍 ঢাকা           [স্থান বদলান] │  ← location row
-│                              │
-│ ⚠️ ইন্টারনেট নেই — আগের তথ্য…    │  ← only when showing cache
-│ ╔══════════════════════════╗ │
-│ ║ ২৫°                  ☁️   ║ │  ← green gradient card
-│ ║ আংশিক মেঘলা                ║ │
-│ ║ অনুভূত ২৯°                  ║ │
-│ ║ সর্বোচ্চ ৩০° · সর্বনিম্ন ২৪°    ║ │
-│ ║ ┌──────┐┌──────┐┌───────┐ ║ │
-│ ║ │ 💧   ││ 🌧️   ││ 💨     │ ║ │
-│ ║ │ ৮১%  ││ ০%   ││৭ কিমি/ঘ│ ║ │
-│ ║ │আর্দ্রতা││ বৃষ্টি ││ বাতাস  │ ║ │
-│ ║ └──────┘└──────┘└───────┘ ║ │
-│ ╚══════════════════════════╝ │
-│        সর্বশেষ আপডেট: আজ রাত ১০:০৯ │
-│                              │
-│ 🌾 আম চাষির জন্য পরামর্শ           │
-│ ┌──────────────────────────┐ │
-│ │ ✅ আবহাওয়া ভালো। প্রয়োজন হলে  │ │  ← GOOD (green)
-│ │    আজ স্প্রে করার জন্য উপযুক্ত দিন। │ │
-│ └──────────────────────────┘ │
-│ ┌──────────────────────────┐ │
-│ │ 🌱 সার দেওয়ার সময়। …        │ │  ← INFO (blue, seasonal)
-│ └──────────────────────────┘ │
-│                              │
-│ 🌦️ ৭ দিনের পূর্বাভাস              │
-│ ┌─────┐┌────────┐┌─────┐ →   │  ← horizontal scroll
-│ │ আজ  ││আগামীকাল ││ শুক্র │      │
-│ │ ☁️  ││  ☁️     ││ ☁️  │      │
-│ │ ৩০° ││  ২৯°    ││ ৩১° │ (red: max)
-│ │ ২৪° ││  ২৩°    ││ ২৩° │ (blue: min)
-│ │☔১৪%││ ☔০%    ││☔২% │      │
-│ └─────┘└────────┘└─────┘      │
-│                              │
-│   আবহাওয়ার তথ্যসূত্র: Open-Meteo.com │  ← required attribution
-└──────────────────────────────┘
-```
-
-#### Sections
-
-| # | Section | Views | Data source |
-|---|---------|-------|-------------|
-| 1 | Header | `btnBack`, `btnSpeak` | — |
-| 2 | Location | `tvLocation`, `btnChangeLocation` | `SavedPlace.name` |
-| 3 | Offline banner | `tvOffline` | `Success.fromCache` |
-| 4 | Current card | `tvTemperature`, `tvCondition`, `tvWeatherEmoji`, `tvFeelsLike`, `tvMaxMin` | `current.*`, `daily[today]` |
-| 5 | Stat tiles | `tvHumidity`, `tvRainChance`, `tvWind` | `current.humidity`, **max rain chance over the next 24 h**, `current.windSpeed` |
-| 6 | Last update | `tvUpdated` | `Success.updatedAt` |
-| 7 | Advice | `layoutAdvice` ← `item_advice.xml` × N | `FarmAdvisor.advise()` |
-| 8 | Forecast | `layoutForecast` ← `item_forecast_day.xml` × 7 | `daily[today..]` |
-| 9 | Attribution | static text | Open-Meteo licence (CC BY 4.0) |
-
-#### Advice card colours
-
-| Level | Colour | Background | Meaning |
-|-------|--------|-----------|---------|
-| `DANGER` | 🔴 `#C62828` | `#FFEBEE` | Act now: storm, heavy rain, disease risk |
-| `CAUTION` | 🟠 `#EF8F00` | `#FFF8E1` | Be careful: don't spray, heat, mildew risk |
-| `GOOD` | 🟢 `#2E7D32` | `#E8F5E9` | Good day for work |
-| `INFO` | 🔵 `#1565C0` | `#E3F2FD` | Seasonal mango-stage tip |
-
-The cards are sorted **DANGER → CAUTION → GOOD → INFO**, so the most urgent card is always on top.
-
-#### Interactions
-
-| Action | Result |
-|--------|--------|
-| Pull down | Refreshes location (if GPS mode) and forecast |
-| স্থান বদলান | Opens the district picker (Screen 4) |
-| 🔊 | Reads the weather and all advice aloud in Bengali |
-| ← | Back to home |
-
----
-
-### Screen 6: Error
-
-Shown only when the network fails **and** there is no usable cache.
-
-```
-┌──────────────────────────────┐
-│ ←  আবহাওয়া ও পরামর্শ        (🔊) │
-│                              │
-│             📡               │
-│  আবহাওয়ার তথ্য আনা যায়নি। ইন্টারনেট │
-│  সংযোগ দেখে আবার চেষ্টা করুন।       │
-│ ┌──────────────────────────┐ │
-│ │      আবার চেষ্টা করুন         │ │  → retries the whole load
-│ └──────────────────────────┘ │
-└──────────────────────────────┘
-```
+- **বাতিল** closes the dialog. If no location was ever chosen, it also closes the screen.
+- If no location is saved yet, tapping outside the dialog doesn't dismiss it.
+- Choosing a district saves it (`isGps = false`); "আমার বর্তমান অবস্থান" retries GPS.
 
 ---
 
@@ -386,10 +255,10 @@ GET https://api.open-meteo.com/v1/forecast
 | `current.temperature_2m` | `CurrentWeather.temperature` | Big temperature |
 | `current.relative_humidity_2m` | `.humidity` | 💧 tile |
 | `current.apparent_temperature` | `.feelsLike` | "অনুভূত" |
-| `current.weather_code` | `.weatherCode` | Condition text + emoji |
+| `current.weather_code` | `.weatherCode` | Condition text + icon |
 | `current.wind_speed_10m` | `.windSpeed` | 💨 tile |
 | `current.wind_gusts_10m` | `.windGusts` | Storm rule |
-| `current.is_day` | `.isDay` | ☀️ vs 🌙 |
+| `current.is_day` | `.isDay` | `wx_sun` vs `wx_moon` |
 | `hourly.*` (168 slots) | `HourlyWeather` | Next-24h window for advice |
 | `daily.*` (7 days) | `DailyWeather` | Forecast strip, today's max/min |
 
@@ -444,33 +313,49 @@ sequenceDiagram
 
 It also uses **today's max/min**, the **rain sum for the next 3 days**, and the **month** (1–12).
 
+### Advice model
+
+```kotlin
+enum class AdviceLevel { DANGER, CAUTION, GOOD, INFO }      // also the sort order
+data class FarmAdvice(val level: AdviceLevel, val title: String, val text: String)
+```
+
+Each card shows a **label** (from the level), a bold **title** and a short **text** body.
+
+| Level | Label | Icon tile | Card bg | Label / title / body colours |
+|-------|-------|-----------|---------|------------------------------|
+| `DANGER` | বিপদ | `ic_warning_line` on `#C62828` | `#FFEBEE` | `#B71C1C` / `#7F1414` / `#4A2020` |
+| `CAUTION` | সাবধান | `ic_clock_line` on `#EF8F00` | `#FFF4DC` | `#8A4B00` / `#5C3300` / `#4A3B2C` |
+| `GOOD` | ভালো খবর | `ic_check` on `#1F7A3A` | `#E7F5E9` | `#1F7A3A` / `#0F4D24` / `#2B3A2E` |
+| `INFO` | মৌসুমি কাজ | `ic_sprout_line` on `#1E6BB8` | `#E3F0FC` | `#154F8A` / `#0F3A66` / `#24364A` |
+
 ### Rules
 
-| # | Rule | Condition | Level | Advice (Bengali) |
-|---|------|-----------|-------|------------------|
-| 1 | Storm | `maxGust ≥ 60 km/h` | 🔴 DANGER | কালবৈশাখী (Mar–May) / ঝড়ো বাতাসের আশঙ্কা! … দুর্বল ডাল খুঁটি দিয়ে বেঁধে দিন |
-| 1b | Windy | `40 ≤ maxGust < 60` | 🟠 CAUTION | জোরে বাতাস … আজ স্প্রে করবেন না |
-| 2 | Heavy rain | `rainSum ≥ 50 mm` | 🔴 DANGER | বাগানের নালা পরিষ্কার রাখুন, গোড়ায় পানি জমতে দেবেন না |
-| 3 | Spray window | `maxRainChance ≥ 60%` | 🟠 CAUTION | ছত্রাকনাশক বা কীটনাশক স্প্রে করবেন না, বৃষ্টিতে ধুয়ে যাবে |
-| 4 | Anthracnose | `avgHumidity ≥ 80%` **and** `20 ≤ avgTemp ≤ 32°C` **and** wet (`rainChance ≥ 50%` or `rainSum ≥ 2 mm`) | 🔴 DANGER | অ্যানথ্রাকনোজ রোগের ঝুঁকি বেশি … ম্যানকোজেব বা কার্বেন্ডাজিম স্প্রে করুন |
-| 5 | Powdery mildew | month Jan–Mar **and** `avgHumidity ≥ 60%` **and** `10 ≤ todayMin ≤ 20°C` | 🟠 CAUTION | পাউডারি মিলডিউ রোগের ঝুঁকি … মুকুলে সালফার স্প্রে করুন |
-| 6 | Heat stress | `todayMax ≥ 36°C` **and** next 3 days rain `< 2 mm` | 🟠 CAUTION | তীব্র গরম … বিকেলে গোড়ায় পানি দিন, গুটি ঝরা কমবে |
-| 7 | Good day | none of the above **and** `rainChance < 30%` **and** `gust < 30` | 🟢 GOOD | আবহাওয়া ভালো … স্প্রে (May–Jul: আম পাড়া) করার উপযুক্ত দিন |
-| 7b | Normal | none of the above, but not calm enough for 7 | 🟢 GOOD | আবহাওয়া স্বাভাবিক। নিয়মিত পরিচর্যা চালিয়ে যান |
-| 8 | Seasonal tip | always | 🔵 INFO | see the table below |
+| # | Rule | Condition | Level | Title → text |
+|---|------|-----------|-------|--------------|
+| 1 | Storm | `maxGust ≥ 60 km/h` | DANGER | **কালবৈশাখী ঝড়ের আশঙ্কা** (Mar–May) / **ঝড়ো বাতাসের আশঙ্কা** → বাতাস ঘণ্টায় X কিমি পর্যন্ত… দুর্বল ডাল খুঁটি দিয়ে বেঁধে দিন। |
+| 1b | Windy | `40 ≤ maxGust < 60` | CAUTION | **জোরে বাতাসের সম্ভাবনা** → আজ স্প্রে করবেন না, বাতাসে ওষুধ উড়ে যাবে। |
+| 2 | Heavy rain | `rainSum ≥ 50 mm` | DANGER | **ভারী বৃষ্টির সম্ভাবনা** → বাগানের নালা পরিষ্কার রাখুন… |
+| 3 | Spray window | `maxRainChance ≥ 60%` | CAUTION | **আজ স্প্রে করবেন না** → বৃষ্টির সম্ভাবনা X%। ছত্রাকনাশক বা কীটনাশক বৃষ্টিতে ধুয়ে যাবে। |
+| 4 | Anthracnose | `avgHumidity ≥ 80%` **and** `20 ≤ avgTemp ≤ 32°C` **and** wet (`rainChance ≥ 50%` or `rainSum ≥ 2 mm`) | DANGER | **অ্যানথ্রাকনোজের ঝুঁকি** → পাতায় কালো দাগ খুঁজুন, বৃষ্টি থামলে ম্যানকোজেব বা কার্বেন্ডাজিম স্প্রে করুন। |
+| 5 | Powdery mildew | month Jan–Mar **and** `avgHumidity ≥ 60%` **and** `10 ≤ todayMin ≤ 20°C` | CAUTION | **পাউডারি মিলডিউর ঝুঁকি** → মুকুলে সাদা গুঁড়া দেখলে সালফার জাতীয় ছত্রাকনাশক স্প্রে করুন। |
+| 6 | Heat stress | `todayMax ≥ 36°C` **and** next 3 days rain `< 2 mm` | CAUTION | **তীব্র গরম (X°)** → বিকেলে গাছের গোড়ায় পানি দিন… |
+| 7 | Good day | none of the above **and** `rainChance < 30%` **and** `gust < 30` | GOOD | **আজ কাজের ভালো দিন** → …স্প্রে (May–Jul: আম পাড়া) করার জন্য উপযুক্ত দিন। |
+| 7b | Normal | none of the above, not calm enough for 7 | GOOD | **আবহাওয়া স্বাভাবিক** → নিয়মিত বাগান পরিচর্যা চালিয়ে যান। |
+| 8 | Seasonal tip | always | INFO | see the table below |
 
 The thresholds are `const val`s at the top of `FarmAdvisor` (`STORM_GUST_KMH`, `WINDY_GUST_KMH`, `HEAVY_RAIN_MM`, `NO_SPRAY_RAIN_CHANCE`, `HEAT_C`), so they are easy to tune.
 
 ### Seasonal mango calendar (Bangladesh)
 
-| Months | Stage | Tip |
-|--------|-------|-----|
-| Dec–Jan | Before flowering | 🌸 Don't irrigate now, it helps flowering (মুকুল) |
-| Feb–Mar | Flowering / fruit set | 🌼 Watch for hopper insects & powdery mildew |
-| Apr–May | Fruit growth | 🥭 Irrigate every 15 days to reduce fruit drop |
-| Jun–Jul | Ripening / harvest | 🧺 Harvest on dry days, in the morning |
-| Aug–Sep | Post-harvest | ✂️ Prune dead, diseased and crowded branches |
-| Oct–Nov | Fertilising | 🌱 Apply fertiliser around the base, light irrigation |
+| Months | Title | Text |
+|--------|-------|------|
+| Dec–Jan | মুকুল আসার আগের সময় | এখন গাছে সেচ দেবেন না, এতে মুকুল ভালো আসে। |
+| Feb–Mar | মুকুল ও গুটি আসার সময় | হপার পোকা ও পাউডারি মিলডিউর দিকে নজর রাখুন। |
+| Apr–May | গুটি বড় হওয়ার সময় | ১৫ দিন পরপর সেচ দিন, এতে গুটি ঝরা কমবে। |
+| Jun–Jul | আম পাকা ও সংগ্রহের সময় | শুকনো দিনে, সকালের দিকে আম পাড়ুন। |
+| Aug–Sep | ডাল ছাঁটার সময় | আম সংগ্রহের পর মরা, রোগা ও ঘন ডাল ছেঁটে দিন। |
+| Oct–Nov | সার দেওয়ার সময় | গাছের গোড়ার চারপাশে সার দিয়ে হালকা সেচ দিন। |
 
 > ⚠️ The rules are practical heuristics based on common Bangladeshi mango-growing guidance (BARI-style recommendations). They are not a validated agronomic model. An agriculture expert should review them before real-world use.
 
@@ -492,20 +377,25 @@ The thresholds are `const val`s at the top of `FarmAdvisor` (`STORM_GUST_KMH`, `
 
 **Time of day labels:** সকাল (4–11), দুপুর (12–14), বিকেল (15–17), সন্ধ্যা (18–19), রাত (20–3).
 
-### Weather codes (WMO → Bengali)
+`greeting(hour)` uses the same bands for the home greeting: শুভ সকাল / শুভ দুপুর / শুভ বিকেল / শুভ সন্ধ্যা / শুভ রাত্রি.
 
-| Code | Bengali | Emoji |
-|------|---------|-------|
-| 0 | পরিষ্কার আকাশ | ☀️ / 🌙 |
-| 1, 2 | আংশিক মেঘলা | ⛅ |
-| 3 | মেঘলা আকাশ | ☁️ |
-| 45, 48 | কুয়াশা | 🌫️ |
-| 51–57 | গুঁড়ি গুঁড়ি বৃষ্টি | 🌦️ |
-| 61, 66, 80 | হালকা বৃষ্টি | 🌦️ |
-| 63, 81 | বৃষ্টি | 🌧️ |
-| 65, 67, 82 | ভারী বৃষ্টি | 🌧️ / ⛈️ |
-| 95 | বজ্রসহ বৃষ্টি | ⛈️ |
-| 96, 99 | শিলাবৃষ্টি ও ঝড় | ⛈️ |
+### Weather codes (WMO → Bengali + icon)
+
+| Code | Bengali (`weatherText`) | Icon (`weatherIconRes`) |
+|------|-------------------------|-------------------------|
+| 0 | পরিষ্কার আকাশ | `wx_sun` (night `wx_moon`) |
+| 1, 2 | আংশিক মেঘলা | `wx_partly` (night `wx_cloud`) |
+| 3 | মেঘলা আকাশ | `wx_cloud` |
+| 45, 48 | কুয়াশা | `wx_fog` |
+| 51–57 | গুঁড়ি গুঁড়ি বৃষ্টি | `wx_rain` |
+| 61, 66, 80 | হালকা বৃষ্টি | `wx_rain` |
+| 63, 81 | বৃষ্টি | `wx_rain` |
+| 65, 67 | ভারী বৃষ্টি | `wx_rain` |
+| 82 | ভারী বৃষ্টি | `wx_storm` |
+| 95 | বজ্রসহ বৃষ্টি | `wx_storm` |
+| 96, 99 | শিলাবৃষ্টি ও ঝড় | `wx_storm` |
+
+The icons are full colour on white (home tile, forecast cards) and tinted white on the blue weather card.
 
 ---
 
@@ -537,13 +427,11 @@ Spoken text:
 পরামর্শ। {all advice texts…}
 ```
 
-Before speaking, symbols are replaced: `%` → "শতাংশ", `°` → "ডিগ্রি", and brackets become pauses. If the Bengali voice isn't installed, a toast shows "ভয়েস সাপোর্ট প্রস্তুত নয়".
+Before speaking, symbols are replaced: `%` → "শতাংশ", `°` → "ডিগ্রি", and brackets become pauses. Each advice item is read as "title। text". If the Bengali voice isn't installed, a toast shows "ভয়েস সাপোর্ট প্রস্তুত নয়".
 
 ---
 
 ## 🗂️ File map
-
-### New files
 
 ```
 app/src/main/java/com/example/mango_disease_detector/
@@ -555,42 +443,35 @@ app/src/main/java/com/example/mango_disease_detector/
 ├── network/
 │   └── WeatherService.kt       # Open-Meteo request + parse
 ├── ui/weather/
-│   └── WeatherActivity.kt      # Screen, permission, picker, render, TTS
+│   ├── WeatherActivity.kt      # Screen, permission, picker, render, TTS
+│   ├── AdviceStyle.kt          # Level → label, icon, 5 colours
+│   └── WeatherIcons.kt         # weatherIconRes(code, isDay)
+├── ui/home/HomeActivity.kt     # Weather chip, weather card, urgent count
 ├── utils/
-│   ├── BanglaFormat.kt         # Digits, days, weather text/emoji, time
-│   ├── FarmAdvisor.kt          # Advice rules + seasonal tips
+│   ├── BanglaFormat.kt         # Digits, days, weather text, greeting, time
+│   ├── FarmAdvisor.kt          # Advice rules (title + text) + seasonal tips
 │   └── LocationHelper.kt       # Coarse location, providers raced
 └── viewmodel/
     └── WeatherViewModel.kt     # WeatherUiState, network → cache fallback
 
 app/src/main/res/
 ├── drawable/
-│   ├── bg_weather_card.xml     # Green gradient, 24dp radius
-│   ├── bg_weather_stat.xml     # Translucent white tile
-│   ├── bg_forecast_today.xml   # Highlighted "today" card
-│   └── ic_weather.xml          # Sun icon for home button
+│   ├── wx_sun / wx_moon / wx_partly / wx_cloud / wx_rain / wx_storm / wx_fog
+│   ├── ic_pin, ic_drop_line, ic_rain_line, ic_wind_line, ic_cloud_line,
+│   │   ic_warning_line, ic_clock_line, ic_check, ic_sprout_line, ic_leaf_line
+│   ├── bg_day.xml / bg_day_today.xml          # Forecast cards
+│   └── bg_pill_outline_green.xml               # "স্থান বদলান"
 └── layout/
     ├── activity_weather.xml    # SwipeRefresh > ScrollView > sections
-    ├── item_advice.xml         # Emoji + text, colour set in code
-    └── item_forecast_day.xml   # Day, emoji, max, min, rain %
+    ├── item_advice.xml         # Icon tile + label + title + text
+    └── item_forecast_day.xml   # Day, icon, max, min, rain pill
 
 app/src/test/java/com/example/mango_disease_detector/
-├── FarmAdvisorTest.kt          # 11 tests
+├── FarmAdvisorTest.kt          # 11 tests (checks title + text)
 └── BanglaFormatTest.kt         # 7 tests (incl. Districts)
 ```
 
-### Changed files
-
-| File | Change |
-|------|--------|
-| `AndroidManifest.xml` | `ACCESS_COARSE_LOCATION`, `android.hardware.location` (not required), `WeatherActivity` |
-| `activity_home.xml` | `btnWeather` + `tvHomeWeatherTemp` |
-| `HomeActivity.kt` | Click → `WeatherActivity`; `onResume()` shows cached temp |
-| `strings.xml` | 21 `weather_*` strings + `btn_weather`, `btn_cancel`, `btn_back` |
-| `colors.xml` | Weather card gradient + 8 advice colours |
-| `libs.versions.toml`, `app/build.gradle.kts` | `androidx.swiperefreshlayout:swiperefreshlayout:1.1.0` |
-
-The only new dependency is **swiperefreshlayout**. Coroutines and `lifecycleScope` come from existing lifecycle libraries.
+The only dependency added for weather is **swiperefreshlayout 1.1.0**. Coroutines and `lifecycleScope` come from existing lifecycle libraries.
 
 ---
 
@@ -636,9 +517,9 @@ adb shell pm clear com.example.mango_disease_detector
 | Item | Notes |
 |------|-------|
 | Voice not verified | The TTS read-out wasn't heard during testing. It needs the Bengali voice data installed |
-| Status bar in dark mode | White icons on the light background in system dark mode. This affects the **whole app** and existed before this feature |
-| Picker dialog in dark mode | The district dialog follows the system dark theme while the app content is light |
 | Advice rules | Heuristics. They should be reviewed by an agronomist (e.g. a BARI / DAE extension officer) |
 | No storm notifications | Possible next step: a daily `WorkManager` job that alerts when rule 1 or 2 fires |
 | No official BMD data | The Bangladesh Meteorological Department has no clean public API. Open-Meteo is used instead |
 | Commercial use | Open-Meteo's free tier is for non-commercial use. A paid plan is needed if the app is commercialised |
+
+**Fixed in v2:** status-bar icons in system dark mode and the dark district dialog. The app now uses a light-only theme (`utils/SystemBars.kt`).
